@@ -1,0 +1,12 @@
+[{
+  "modid": "chunkfix",
+  "name": "ChunkFix",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "https://github.com/Gjum/ChunkFix",
+  "authorList": ["Gjum"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}]

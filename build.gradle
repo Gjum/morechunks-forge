@@ -1,0 +1,92 @@
+version = "0.0.1"
+
+import org.ajoberstar.grgit.Grgit
+import org.ajoberstar.grgit.exception.GrgitException
+
+import java.text.SimpleDateFormat
+
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+        classpath 'org.ajoberstar:grgit:1.1.0'
+    }
+}
+apply plugin: 'net.minecraftforge.gradle.forge'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+ext {
+    forgeVsn = "1.10.2-12.18.3.2254"
+    if (System.getenv("FORGE_VERSION") != null) {
+        forgeVsn = System.getenv("FORGE_VERSION")
+    }
+    mcVsn = forgeVsn.split("-", 2)[0]
+
+    try {
+        def repo = Grgit.open(".")
+        def head = repo.head()
+        isRelease = repo.tag.list().any { it.name == "v$version" && it.commit.id == head.id }
+        abbreviatedId = "git-" + head.abbreviatedId
+    } catch (GrgitException ignored) {
+        abbreviatedId = "wip"
+        isRelease = true
+    }
+}
+
+group = "gjum.minecraft.forge"
+archivesBaseName = "ChunkFix-" + mcVsn
+
+if (!isRelease) {
+    version = "${version}-pre-${abbreviatedId}"
+}
+if (System.getenv("TRAVIS_BUILD_NUMBER") != null) {
+    version = String.format("%s+b%s", version, System.getenv("TRAVIS_BUILD_NUMBER"))
+}
+
+minecraft {
+    version = forgeVsn
+    runDir = "run"
+    mappings = "snapshot_20161228"
+
+    replaceIn "gjum/minecraft/forge/chunkfix/ChunkFixMod.java"
+    replace "@VERSION@", project.version
+    replace "@BUILD_TIME@", buildTime
+}
+
+dependencies {
+    // put dependency jars in ./libs
+}
+
+processResources
+{
+    // this will ensure that this task is redone when the versions change.
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    // replace stuff in mcmod.info, nothing else
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+
+        // replace version and mcversion
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
+
+    // copy everything else, thats not the mcmod.info
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+def getBuildTime() {
+    def date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z")
+    date.setTimeZone(TimeZone.getTimeZone("UTC"))
+    return date.format(new Date())
+}
