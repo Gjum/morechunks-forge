@@ -61,7 +61,7 @@ public class ChunkFix {
     public void afterConnectionIsMade() {
         if (minecraftPacketHandler == null) {
             injectPacketHandlerIntoGameServerPipeline();
-            connection.connect("localhost", 12312);
+            connection.connect();
             lastTimeRequestedExtraChunks = System.currentTimeMillis() + 1000;
         }
     }

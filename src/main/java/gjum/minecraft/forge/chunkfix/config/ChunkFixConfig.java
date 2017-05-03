@@ -2,7 +2,6 @@ package gjum.minecraft.forge.chunkfix.config;
 
 
 import gjum.minecraft.forge.chunkfix.ChunkFix;
-import gjum.minecraft.forge.chunkfix.ChunkFixMod;
 import net.minecraftforge.common.config.ConfigCategory;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.common.config.Property;
@@ -19,6 +18,10 @@ public class ChunkFixConfig {
 
     private boolean enabled, filterGlitchChunks, keepChunksLoaded, loadExtraChunks, publishChunks;
     private Property propEnabled, propFilterGlitchChunks, propKeepChunksLoaded, propLoadExtraChunks, propPublishChunks;
+
+    private String hostname;
+    private int port;
+    private Property propHostname, propPort;
 
     private ChunkFixConfig() {
     }
@@ -86,6 +89,14 @@ public class ChunkFixConfig {
         return true; // TODO blacklist regions
     }
 
+    public String getHostname() {
+        return hostname;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
     /**
      * no idea why this has to be called so often, ideally the prop* would stay the same,
      * but it looks like they get disassociated from the config sometimes and setting them no longer has any effect
@@ -96,6 +107,9 @@ public class ChunkFixConfig {
         propKeepChunksLoaded = config.get(CATEGORY_MAIN, "keepChunksLoaded", true, "Do not unload chunks when the server unloads them.");
         propLoadExtraChunks = config.get(CATEGORY_MAIN, "loadExtraChunks", true, "Load chunks outside the server render distance.");
         propPublishChunks = config.get(CATEGORY_MAIN, "publishChunks", true, "Store extra chunks to be loaded in the future.");
+
+        propHostname = config.get(CATEGORY_MAIN, "chunkserverHostname", "gjum.isteinvids.co.uk", "Address of the chunk server.");
+        propPort = config.get(CATEGORY_MAIN, "chunkserverPort", 12312, "Port of the chunk server.");
     }
 
     /**
@@ -107,6 +121,9 @@ public class ChunkFixConfig {
         keepChunksLoaded = propKeepChunksLoaded.getBoolean();
         loadExtraChunks = propLoadExtraChunks.getBoolean();
         publishChunks = propPublishChunks.getBoolean();
+
+        hostname = propHostname.getString();
+        port = propPort.getInt();
 
         // TODO if turning off, unload extra chunks
 

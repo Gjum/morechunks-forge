@@ -1,5 +1,6 @@
 package gjum.minecraft.forge.chunkfix;
 
+import gjum.minecraft.forge.chunkfix.config.ChunkFixConfig;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
@@ -87,12 +88,13 @@ public class Connection {
         return channel.writeAndFlush(buf);
     }
 
-    public synchronized void connect(final String address, final int port) {
+    public synchronized void connect() {
         if (channel != null && channel.isOpen()) {
             ChunkFix.log("already connected");
             return;
         }
-        ChunkFix.log("Connecting to %s:%d", address, port);
+        ChunkFixConfig conf = ChunkFixConfig.instance;
+        ChunkFix.log("Connecting to %s:%d", conf.getHostname(), conf.getPort());
         ChannelFuture f = new Bootstrap()
                 .group(getLoopGroup().getValue())
                 .channel(getChannelClass())
@@ -103,10 +105,10 @@ public class Connection {
                                 // every message is prepended with their length, so that we won't read partial messages or skip messages
                                 .addLast("splitter", new LengthFieldBasedFrameDecoder(65535, 0, 4, 0, 4))
                                 .addLast("prepender", new LengthFieldPrepender(4))
-                                .addLast("packet_handler", new ReceiverHandler(address, port));
+                                .addLast("packet_handler", new ReceiverHandler());
                     }
                 })
-                .connect(address, port)
+                .connect(conf.getHostname(), conf.getPort())
                 .addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture f) throws Exception {
@@ -133,18 +135,18 @@ public class Connection {
                     @Override
                     public void operationComplete(ChannelFuture f) throws Exception {
                         ChunkFix.log(ERROR, "connection closed: " + f);
-                        reconnectAfterRetryDelay(address, port);
+                        reconnectAfterRetryDelay();
                     }
                 }
         );
     }
 
-    private void reconnectAfterRetryDelay(final String address, final int serverPort) {
+    private void reconnectAfterRetryDelay() {
         ChunkFix.log("reconnecting");
         channel.eventLoop().schedule(new Runnable() {
             @Override
             public void run() {
-                connect(address, serverPort);
+                connect();
             }
         }, bumpRetryDelay(), SECONDS);
     }
@@ -157,17 +159,6 @@ public class Connection {
     }
 
     private class ReceiverHandler extends ChannelInboundHandlerAdapter {
-        /**
-         * used for reconnect after exception
-         */
-        private final String address;
-        private final int port;
-
-        public ReceiverHandler(String address, int port) {
-            this.address = address;
-            this.port = port;
-        }
-
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msgObj) {
             ByteBuf msg = (ByteBuf) msgObj;
@@ -206,7 +197,7 @@ public class Connection {
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             cause.printStackTrace();
             ctx.close();
-            reconnectAfterRetryDelay(address, port);
+            reconnectAfterRetryDelay();
         }
     }
 
