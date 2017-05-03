@@ -37,7 +37,7 @@ ext {
         abbreviatedId = "git-" + head.abbreviatedId
     } catch (GrgitException ignored) {
         abbreviatedId = "wip"
-        isRelease = true
+        isRelease = false
     }
 }
 
