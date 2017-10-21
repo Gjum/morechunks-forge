@@ -1,18 +1,42 @@
 package gjum.minecraft.forge.morechunks;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.annotations.Expose;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 
-public class MoreChunksConfig implements IConfig {
+public class Config implements IConfig {
+    @Expose()
+    private boolean enabled;
+    @Expose()
     private String hostname;
-    private int maxNumChunksLoaded = 16 * 16;
+    @Expose()
+    private int maxNumChunksLoaded;
+    @Expose()
     private int port;
-    private int serverRenderDistance = 4;
+    @Expose()
+    private int serverRenderDistance;
+
+    private static final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+
+    @Expose(deserialize = false, serialize = false)
     private File configFile;
+
+    public Config() {
+        loadDefaults();
+    }
+
+    private void loadDefaults() {
+        enabled = true;
+        hostname = "gjum.isteinvids.co.uk";
+        maxNumChunksLoaded = 16 * 16;
+        port = 12312;
+        serverRenderDistance = 4;
+    }
 
     // TODO cache blacklist using bitwise filter thing
     // because there will be lots of non-matches, which that data structure is optimized for
@@ -32,6 +56,11 @@ public class MoreChunksConfig implements IConfig {
         // TODO rebuild blacklist if dirty
         // TODO check against blacklist
         return true;
+    }
+
+    @Override
+    public boolean getEnabled() {
+        return enabled;
     }
 
     @Override
@@ -57,17 +86,9 @@ public class MoreChunksConfig implements IConfig {
     @Override
     public void load(File configFile) throws IOException {
         this.configFile = configFile;
-        if (!configFile.canRead()) {
-            // load defaults
-            hostname = "gjum.isteinvids.co.uk";
-            maxNumChunksLoaded = 16 * 16;
-            port = 12312;
-            serverRenderDistance = 4;
-            return;
-        }
 
         FileReader reader = new FileReader(configFile);
-        new Gson().fromJson(reader, this.getClass());
+        gson.fromJson(reader, this.getClass());
         reader.close();
     }
 
@@ -79,10 +100,15 @@ public class MoreChunksConfig implements IConfig {
     @Override
     public void save(File configFile) throws IOException {
         this.configFile = configFile;
-        String json = new Gson().toJson(this);
+        String json = gson.toJson(this);
         FileOutputStream fos = new FileOutputStream(configFile);
         fos.write(json.getBytes());
         fos.close();
+    }
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     @Override

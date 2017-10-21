@@ -1,6 +1,5 @@
 package gjum.minecraft.forge.morechunks;
 
-import gjum.minecraft.forge.chunkfix.ChunkFixMod;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
@@ -21,7 +20,7 @@ import java.util.Collection;
 import static net.minecraft.network.NetworkManager.CLIENT_EPOLL_EVENTLOOP;
 import static net.minecraft.network.NetworkManager.CLIENT_NIO_EVENTLOOP;
 
-public class ChunkServerConnection implements IChunkServerConnection {
+public class ChunkServer implements IChunkServer {
     private final IConfig conf;
     private final IEnv env;
     private final IMoreChunks moreChunks;
@@ -35,7 +34,7 @@ public class ChunkServerConnection implements IChunkServerConnection {
     private final byte SEND_STRING_MSG = 1;
     private final byte SEND_CHUNKS_REQUEST = 2;
 
-    public ChunkServerConnection(IConfig conf, IEnv env, IMoreChunks moreChunks) {
+    public ChunkServer(IConfig conf, IEnv env, IMoreChunks moreChunks) {
         this.moreChunks = moreChunks;
         this.env = env;
         this.conf = conf;
@@ -67,16 +66,15 @@ public class ChunkServerConnection implements IChunkServerConnection {
 
         channel = connectedF.channel();
         channel.closeFuture().addListener(closeF ->
-                moreChunks.onChunkServerDisconnected(new DisconnectReason("ChunkServer: Connection closed")));
+                disconnect(new DisconnectReason("ChunkServer: Connection closed")));
 
         connectedF.addListener(connectF -> {
             if (!connectF.isSuccess()) {
-                channel.close();
-                moreChunks.onChunkServerDisconnected(new DisconnectReason("ChunkServer: Connection failed"));
+                disconnect(new DisconnectReason("ChunkServer: Connection failed"));
                 return;
             }
 
-            sendStringMsg("mod.version " + ChunkFixMod.VERSION);
+            sendStringMsg("mod.version " + MoreChunksMod.VERSION);
 
             NetHandlerPlayClient mcConn = Minecraft.getMinecraft().getConnection();
             if (mcConn == null) {
@@ -92,6 +90,8 @@ public class ChunkServerConnection implements IChunkServerConnection {
 
     @Override
     public void disconnect(DisconnectReason reason) {
+        if (!isConnected()) return;
+        channel.close();
         channel.disconnect();
         moreChunks.onChunkServerDisconnected(reason);
     }
@@ -109,6 +109,11 @@ public class ChunkServerConnection implements IChunkServerConnection {
      */
     @Override
     public void requestChunks(Collection<Pos2> chunksPos) {
+        if (!isConnected()) {
+            env.log(Level.ERROR, "Trying to request %s chunks while disconnected", chunksPos.size());
+            return;
+        }
+
         env.log(Level.DEBUG, "Requesting %d chunks", chunksPos.size());
         ByteBuf buf = channel.alloc().buffer()
                 .writeByte(SEND_CHUNKS_REQUEST);
@@ -126,7 +131,12 @@ public class ChunkServerConnection implements IChunkServerConnection {
      */
     @Override
     public void sendChunk(Chunk chunk) {
-        env.log(Level.DEBUG, "sending chunk to server: %d,%d", chunk.pos.x, chunk.pos.z);
+        if (!isConnected()) {
+            env.log(Level.ERROR, "Trying to send chunk at %s while disconnected", chunk.pos);
+            return;
+        }
+
+        env.log(Level.DEBUG, "sending chunk to server: %s", chunk.pos);
         channel.writeAndFlush(channel.alloc().buffer()
                 .writeByte(SEND_CHUNK_DATA)
                 .writeLong(env.currentTimeMillis())
@@ -141,7 +151,12 @@ public class ChunkServerConnection implements IChunkServerConnection {
      * - message (bytes): encoded message string
      */
     public void sendStringMsg(String message) {
-        env.log(Level.DEBUG, "Sending msg " + message);
+        if (!isConnected()) {
+            env.log(Level.ERROR, "Trying to send string message while disconnected: \"%s\"", message);
+            return;
+        }
+
+        env.log(Level.DEBUG, "Sending msg \"%s\"", message);
         channel.writeAndFlush(channel.alloc().buffer()
                 .writeByte(SEND_STRING_MSG)
                 .writeBytes(message.getBytes())
@@ -158,7 +173,7 @@ public class ChunkServerConnection implements IChunkServerConnection {
 
                     case RECV_CHUNK_DATA:
                         if (!msg.isReadable()) {
-                            env.log(Level.DEBUG, "empty chunk received");
+                            env.log(Level.WARN, "empty chunk received");
                             break;
                         }
 
@@ -188,8 +203,7 @@ public class ChunkServerConnection implements IChunkServerConnection {
         @Override
         public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
             cause.printStackTrace();
-            ctx.close();
-            moreChunks.onChunkServerDisconnected(new DisconnectReason("ChunkServer: Receiver Exception: " + cause.getMessage()));
+            disconnect(new DisconnectReason("ChunkServer: Receiver Exception: " + cause.getMessage()));
         }
     }
 

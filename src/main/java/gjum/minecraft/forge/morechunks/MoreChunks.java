@@ -10,7 +10,8 @@ public class MoreChunks implements IMoreChunks {
     private final IConfig conf;
     private final IEnv env;
 
-    private IChunkServerConnection chunkServer;
+    private IChunkServer chunkServer;
+    private Pos2 lastRequestPlayerPos = new Pos2(Integer.MAX_VALUE, Integer.MAX_VALUE);
 
     private long nextReconnectTime = 0;
     private long nextRetryInterval = 1000;
@@ -21,13 +22,13 @@ public class MoreChunks implements IMoreChunks {
         this.env = env;
     }
 
-    public void setChunkServer(IChunkServerConnection chunkServer) {
+    public void setChunkServer(IChunkServer chunkServer) {
         this.chunkServer = chunkServer;
     }
 
     @Override
     public void onChunkServerConnected() {
-        nextReconnectTime = env.currentTimeMillis();
+        nextReconnectTime = 0;
         nextRetryInterval = 1000;
 
         if (!game.isIngame()) {
@@ -55,16 +56,26 @@ public class MoreChunks implements IMoreChunks {
 
     @Override
     public void onReceiveExtraChunk(Chunk chunk) {
-        if (!game.isIngame()) return;
+        if (!game.isIngame()) {
+            env.log(Level.WARN, "Received extra chunk at %s while not ingame", chunk.pos);
+            return;
+        }
 
         final int chunkDistance = chunk.pos.chebyshevDistance(game.getPlayerChunkPos());
-        if (chunkDistance > game.getRenderDistance()) return;
 
-        if (chunkDistance <= conf.getServerRenderDistance()) return;
+        if (chunkDistance > game.getRenderDistance()) {
+            env.log(Level.DEBUG, "Discarding too far extra chunk at %s", chunk.pos);
+            return;
+        }
+
+        if (chunkDistance <= conf.getServerRenderDistance()) {
+            env.log(Level.DEBUG, "Discarding too close extra chunk at %s", chunk.pos);
+            return;
+        }
 
         game.loadChunk(chunk);
 
-        unloadChunksOverCap();
+        game.runOnMcThread(this::unloadChunksOverCap);
     }
 
     @Override
@@ -72,9 +83,11 @@ public class MoreChunks implements IMoreChunks {
         if (chunkServer.isConnected()) {
             chunkServer.sendChunk(chunk);
         }
-        unloadChunksOutsideRenderDistance();
-        requestExtraChunks();
-        unloadChunksOverCap();
+        game.runOnMcThread(() -> {
+            unloadChunksOutsideRenderDistance();
+            requestExtraChunks();
+            unloadChunksOverCap();
+        });
     }
 
     @Override
@@ -87,6 +100,7 @@ public class MoreChunks implements IMoreChunks {
 
     private void requestExtraChunks() {
         if (!chunkServer.isConnected()) return;
+        if (lastRequestPlayerPos.equals(game.getPlayerChunkPos())) return; // TODO test
 
         List<Pos2> loadableChunks = getLoadableChunks();
 
@@ -94,7 +108,10 @@ public class MoreChunks implements IMoreChunks {
         // TODO sort loadable chunks by interest instead (e.g. within player's walking direction)
         loadableChunks = sortByPlayerDistance(loadableChunks);
         final int chunkLoadLimit = conf.getMaxNumChunksLoaded() - game.getLoadedChunks().size();
+        if (chunkLoadLimit <= 0) return; // TODO test
         loadableChunks = loadableChunks.stream().limit(chunkLoadLimit).collect(Collectors.toList());
+
+        lastRequestPlayerPos = game.getPlayerChunkPos();
 
         chunkServer.requestChunks(loadableChunks);
     }
@@ -150,6 +167,7 @@ public class MoreChunks implements IMoreChunks {
 
         nextReconnectTime = now + nextRetryInterval;
         nextRetryInterval *= 2;
+        if (nextRetryInterval > 6000) nextRetryInterval = 6000; // TODO test
 
         chunkServer.connect();
     }

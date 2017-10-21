@@ -2,7 +2,7 @@ package gjum.minecraft.forge.morechunks;
 
 import java.util.Collection;
 
-public interface IChunkServerConnection {
+public interface IChunkServer {
     /**
      * (Re-)Connect to the chunk server and send initial information
      * about the client, such as world name and chunk sending speed.

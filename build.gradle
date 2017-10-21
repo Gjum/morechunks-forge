@@ -42,7 +42,7 @@ ext {
 }
 
 group = "gjum.minecraft.forge"
-archivesBaseName = "ChunkFix-" + mcVsn
+archivesBaseName = "MoreChunks-" + mcVsn
 
 if (!isRelease) {
     version = "${version}-pre-${abbreviatedId}"
@@ -56,7 +56,7 @@ minecraft {
     runDir = "run"
     mappings = "snapshot_20161228"
 
-    replaceIn "gjum/minecraft/forge/chunkfix/ChunkFixMod.java"
+    replaceIn "gjum/minecraft/forge/morechunks/MoreChunksMod.java"
     replace "@VERSION@", project.version
     replace "@BUILD_TIME@", buildTime
 }

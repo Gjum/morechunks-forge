@@ -13,5 +13,7 @@ public interface IMcGame {
 
     void loadChunk(Chunk chunk);
 
+    void runOnMcThread(Runnable runnable);
+
     void unloadChunk(Pos2 chunkPos);
 }

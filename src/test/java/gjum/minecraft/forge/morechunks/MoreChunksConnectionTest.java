@@ -1,21 +1,21 @@
 package gjum.minecraft.forge.morechunks;
 
-import gjum.minecraft.forge.morechunks.MockChunkServerConnection.ConnCall;
+import gjum.minecraft.forge.morechunks.MockChunkServer.ConnCall;
 import junit.framework.TestCase;
 
 public class MoreChunksConnectionTest extends TestCase {
 
     private MoreChunks moreChunks;
     private MockMcGame game;
-    private MockChunkServerConnection chunkServer;
+    private MockChunkServer chunkServer;
     private IConfig conf;
     private MockEnv env;
 
     public void setUp() throws Exception {
         super.setUp();
         game = new MockMcGame();
-        chunkServer = new MockChunkServerConnection();
-        conf = new MoreChunksConfig();
+        chunkServer = new MockChunkServer();
+        conf = new Config();
         env = new MockEnv();
         moreChunks = new MoreChunks(game, conf, env);
         moreChunks.setChunkServer(chunkServer);
@@ -133,6 +133,8 @@ public class MoreChunksConnectionTest extends TestCase {
         assertTrue("successful connection should reset reconnect interval",
                 chunkServer.containsCall(ConnCall.CONNECT));
     }
+
+    // TODO test when not enabled
 
     // TODO cap out reconnect time at 60sec
 }

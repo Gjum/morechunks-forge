@@ -1,9 +1,9 @@
 [{
-  "modid": "chunkfix",
-  "name": "ChunkFix",
+  "modid": "morechunks",
+  "name": "MoreChunks",
   "version": "${version}",
   "mcversion": "${mcversion}",
-  "url": "https://github.com/Gjum/ChunkFix",
+  "url": "https://github.com/Gjum/MoreChunks",
   "authorList": ["Gjum"],
   "credits": "",
   "logoFile": "",

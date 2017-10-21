@@ -2,7 +2,7 @@ package gjum.minecraft.forge.morechunks;
 
 import java.util.Collection;
 
-public class MockChunkServerConnection extends CallTracker<MockChunkServerConnection.ConnCall> implements IChunkServerConnection {
+public class MockChunkServer extends CallTracker<MockChunkServer.ConnCall> implements IChunkServer {
     boolean connected = false;
 
     enum ConnCall {IS_CONNECTED, CONNECT, DISCONNECT, REQUEST_CHUNKS, SEND_CHUNK}

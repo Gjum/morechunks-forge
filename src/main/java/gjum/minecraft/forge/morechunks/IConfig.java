@@ -10,6 +10,8 @@ public interface IConfig {
 
     boolean canPublishChunk(Pos2 chunkPos);
 
+    boolean getEnabled();
+
     int getMaxNumChunksLoaded();
 
     int getPort();
@@ -23,6 +25,8 @@ public interface IConfig {
     void save() throws IOException;
 
     void save(File configFile) throws IOException;
+
+    void setEnabled(boolean enabled);
 
     void setHostname(String hostname);
 
