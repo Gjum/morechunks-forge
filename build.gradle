@@ -20,8 +20,8 @@ buildscript {
 }
 apply plugin: 'net.minecraftforge.gradle.forge'
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 ext {
     forgeVsn = "1.10.2-12.18.3.2254"
