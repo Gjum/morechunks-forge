@@ -1,6 +1,9 @@
 package gjum.minecraft.forge.morechunks;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 
 public class MoreChunks implements IMoreChunks {
     private final IMcGame game;
@@ -9,7 +12,6 @@ public class MoreChunks implements IMoreChunks {
     private final IEnv env;
     private long nextReconnectTime = 0;
     private long nextRetryInterval = 1000;
-    private int serverRenderDistance = 4;
 
     public MoreChunks(IMcGame game, IChunkServerConnection chunkServer, IConfig conf, IEnv env) {
         this.game = game;
@@ -48,7 +50,7 @@ public class MoreChunks implements IMoreChunks {
     public void onReceiveExtraChunk(Chunk chunk) {
         if (!game.isIngame()) return;
 
-        final int chunkDistance = chunk.pos.maxisDistance(game.getPlayerChunkPos());
+        final int chunkDistance = chunk.pos.chebyshevDistance(game.getPlayerChunkPos());
         if (chunkDistance > game.getRenderDistance()) return;
 
         if (game.getLoadedChunks().contains(chunk.pos)) return;
@@ -85,19 +87,25 @@ public class MoreChunks implements IMoreChunks {
      * that are neither loaded nor within server's' render distance.
      */
     private List<Pos2> getLoadableChunks() {
-        final int rd = game.getRenderDistance();
-        final Pos2 p = game.getPlayerChunkPos();
+        final int rdClient = game.getRenderDistance();
+        final int rdServer = conf.getServerRenderDistance();
         final Collection<Pos2> loadedChunks = game.getLoadedChunks();
+        final Pos2 player = game.getPlayerChunkPos();
+
         final List<Pos2> loadable = new ArrayList<>();
-        for (int x = p.x - rd; x <= p.x + rd; x++) {
-            for (int z = p.z - rd; z <= p.z + rd; z++) {
-                Pos2 pos = new Pos2(x, z);
-                if (p.maxisDistance(pos) <= serverRenderDistance) {
+        for (int x = player.x - rdClient; x <= player.x + rdClient; x++) {
+            for (int z = player.z - rdClient; z <= player.z + rdClient; z++) {
+                Pos2 chunk = new Pos2(x, z);
+
+                if (player.chebyshevDistance(chunk) <= rdServer) {
+                    // do not load extra chunks inside the server's render distance,
+                    // we expect the server to send game chunks here eventually
                     continue;
                 }
-                // TODO inefficient? measure performance
-                if (!loadedChunks.contains(pos)) {
-                    loadable.add(pos);
+
+                // TODO inefficient check? measure performance
+                if (!loadedChunks.contains(chunk)) {
+                    loadable.add(chunk);
                 }
             }
         }
@@ -122,7 +130,7 @@ public class MoreChunks implements IMoreChunks {
         int renderDistance = game.getRenderDistance();
         ArrayList<Pos2> chunksToUnload = new ArrayList<>();
         for (Pos2 chunkPos : game.getLoadedChunks()) {
-            if (player.maxisDistance(chunkPos) > renderDistance) {
+            if (player.chebyshevDistance(chunkPos) > renderDistance) {
                 chunksToUnload.add(chunkPos);
             }
         }

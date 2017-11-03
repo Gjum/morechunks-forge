@@ -20,4 +20,9 @@ public class MoreChunksConfig implements IConfig {
         // TODO check against blacklist
         return true;
     }
+
+    @Override
+    public int getServerRenderDistance() {
+        return 4;
+    }
 }

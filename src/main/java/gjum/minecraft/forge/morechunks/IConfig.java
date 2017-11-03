@@ -6,4 +6,6 @@ public interface IConfig {
     void blacklistRectangle(Pos2 corner1, Pos2 corner2);
 
     boolean canPublishChunk(Pos2 chunkPos);
+
+    int getServerRenderDistance();
 }

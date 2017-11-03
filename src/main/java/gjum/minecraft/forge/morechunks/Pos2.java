@@ -35,12 +35,12 @@ public class Pos2 {
 //        return lvt_1_1_ ^ lvt_2_1_;
     }
 
-    public int taxicabDistance(Pos2 to) {
-        return abs(to.x - x) + abs(to.z - z);
+    public int chebyshevDistance(Pos2 to) {
+        return max(abs(to.x - x), abs(to.z - z));
     }
 
-    public int maxisDistance(Pos2 to) {
-        return max(abs(to.x - x), abs(to.z - z));
+    public int taxicabDistance(Pos2 to) {
+        return abs(to.x - x) + abs(to.z - z);
     }
 
     private int abs(int n) {
