@@ -1,9 +1,9 @@
 package gjum.minecraft.forge.morechunks;
 
-import java.util.Collection;
+import java.util.List;
 
 public interface IMcGame {
-    Collection<Pos2> getLoadedChunks();
+    List<Pos2> getLoadedChunks();
 
     Pos2 getPlayerChunkPos();
 

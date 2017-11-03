@@ -3,6 +3,11 @@ package gjum.minecraft.forge.morechunks;
 public class Pos2 {
     public final int x, z;
 
+    @Override
+    public String toString() {
+        return String.format("Pos2{%d, %d}", x, z);
+    }
+
     public Pos2(int x, int z) {
         this.x = x;
         this.z = z;

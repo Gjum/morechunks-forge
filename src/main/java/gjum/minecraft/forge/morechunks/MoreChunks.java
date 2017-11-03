@@ -1,6 +1,6 @@
 package gjum.minecraft.forge.morechunks;
 
-import java.util.ArrayList;
+import java.util.*;
 
 public class MoreChunks implements IMoreChunks {
     private final IMcGame game;
@@ -9,6 +9,7 @@ public class MoreChunks implements IMoreChunks {
     private final IEnv env;
     private long nextReconnectTime = 0;
     private long nextRetryInterval = 1000;
+    private int serverRenderDistance = 4;
 
     public MoreChunks(IMcGame game, IChunkServerConnection chunkServer, IConfig conf, IEnv env) {
         this.game = game;
@@ -62,6 +63,7 @@ public class MoreChunks implements IMoreChunks {
             chunkServer.sendChunk(chunk);
         }
         unloadChunksOutsideRenderDistance();
+        requestExtraChunks();
     }
 
     @Override
@@ -70,13 +72,36 @@ public class MoreChunks implements IMoreChunks {
             retryConnectChunkServer();
             return;
         }
-
-        requestExtraChunks();
     }
 
     private void requestExtraChunks() {
-        final long now = env.currentTimeMillis();
-        // TODO check if last game-chunk-load is longer ago than expected time between chunk loads
+        if (!chunkServer.isConnected()) return;
+        List<Pos2> loadableChunks = getLoadableChunks();
+        chunkServer.requestChunks(loadableChunks);
+    }
+
+    /**
+     * Build a list of all chunk positions inside the client's render distance
+     * that are neither loaded nor within server's' render distance.
+     */
+    private List<Pos2> getLoadableChunks() {
+        final int rd = game.getRenderDistance();
+        final Pos2 p = game.getPlayerChunkPos();
+        final Collection<Pos2> loadedChunks = game.getLoadedChunks();
+        final List<Pos2> loadable = new ArrayList<>();
+        for (int x = p.x - rd; x <= p.x + rd; x++) {
+            for (int z = p.z - rd; z <= p.z + rd; z++) {
+                Pos2 pos = new Pos2(x, z);
+                if (p.maxisDistance(pos) <= serverRenderDistance) {
+                    continue;
+                }
+                // TODO inefficient? measure performance
+                if (!loadedChunks.contains(pos)) {
+                    loadable.add(pos);
+                }
+            }
+        }
+        return loadable;
     }
 
     private void retryConnectChunkServer() {

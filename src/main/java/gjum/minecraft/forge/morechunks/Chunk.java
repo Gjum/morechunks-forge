@@ -7,6 +7,11 @@ public class Chunk {
 
     public final ByteBuf data;
 
+    @Override
+    public String toString() {
+        return String.format("Chunk{%s}", pos);
+    }
+
     public Chunk(Pos2 pos, ByteBuf data) {
         this.pos = pos;
         this.data = data;

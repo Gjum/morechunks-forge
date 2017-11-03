@@ -4,6 +4,8 @@ import gjum.minecraft.forge.morechunks.MockChunkServerConnection.ConnCall;
 import gjum.minecraft.forge.morechunks.MockMcGame.GameCall;
 import junit.framework.TestCase;
 
+import java.util.List;
+
 public class MoreChunksChunkLoadingTest extends TestCase {
 
     private MoreChunks moreChunks;
@@ -93,5 +95,50 @@ public class MoreChunksChunkLoadingTest extends TestCase {
                 !game.containsCall(snap ->
                         snap.call == GameCall.UNLOAD_CHUNK
                                 && snap.args[0] == nearPos));
+    }
+
+    private boolean didRequestForChunkAt(Pos2 pos) {
+        return conn.containsCall(snap -> {
+            if (snap.call != ConnCall.REQUEST_CHUNKS) return false;
+            //noinspection unchecked
+            List<Pos2> posList = (List<Pos2>) snap.args[0];
+            return posList.contains(pos);
+        });
+    }
+
+    public void testRequestsExtraChunks() {
+        conn.connected = true;
+        game.ingame = true;
+        moreChunks.onReceiveGameChunk(new Chunk(new Pos2(0, 0), null));
+
+        assertTrue("should request extra chunks outside server's render distance",
+                didRequestForChunkAt(new Pos2(5, 0)));
+
+        assertTrue("should not request extra chunks inside server's render distance",
+                !didRequestForChunkAt(new Pos2(4, 0)));
+
+        assertTrue("should not request extra chunks outside client's render distance",
+                !didRequestForChunkAt(new Pos2(7, 0)));
+    }
+
+    public void testDoesNotRequestExtraChunksForLoadedChunks() {
+        conn.connected = true;
+        game.ingame = true;
+        Pos2 alreadyLoaded = new Pos2(5, 1);
+        game.loadedChunks.add(alreadyLoaded);
+
+        moreChunks.onReceiveGameChunk(new Chunk(new Pos2(0, 0), null));
+
+        assertTrue("should not request extra chunks for already loaded chunks",
+                !didRequestForChunkAt(alreadyLoaded));
+    }
+
+    public void testDoesNotRequestExtraChunksWhenNotConnected() {
+        conn.connected = false;
+        game.ingame = true;
+        moreChunks.onReceiveGameChunk(new Chunk(new Pos2(0, 0), null));
+
+        assertTrue("should not request extra chunks when not connected to chunk server",
+                !conn.containsCall(ConnCall.REQUEST_CHUNKS));
     }
 }

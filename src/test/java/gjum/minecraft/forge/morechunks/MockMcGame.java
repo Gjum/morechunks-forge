@@ -1,7 +1,7 @@
 package gjum.minecraft.forge.morechunks;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcGame {
     boolean ingame;
@@ -23,7 +23,7 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
     }
 
     @Override
-    public Collection<Pos2> getLoadedChunks() {
+    public List<Pos2> getLoadedChunks() {
         trackCall(GameCall.GET_LOADED_CHUNKS);
         return loadedChunks;
     }
