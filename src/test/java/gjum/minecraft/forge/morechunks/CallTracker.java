@@ -27,6 +27,14 @@ public class CallTracker<Call> {
         final Call call;
         final Object[] args;
 
+        @Override
+        public String toString() {
+            if (args.length == 1) {
+                return "CallSnap{" + call + ", arg=" + args[0] + "}";
+            }
+            return "CallSnap{" + call + ", " + args.length + " args}";
+        }
+
         private CallSnap(Call call, Object... args) {
             this.call = call;
             this.args = args;

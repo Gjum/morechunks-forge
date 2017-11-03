@@ -4,6 +4,7 @@ import gjum.minecraft.forge.morechunks.MockChunkServerConnection.ConnCall;
 import gjum.minecraft.forge.morechunks.MockMcGame.GameCall;
 import junit.framework.TestCase;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class MoreChunksChunkLoadingTest extends TestCase {
@@ -140,5 +141,45 @@ public class MoreChunksChunkLoadingTest extends TestCase {
 
         assertTrue("should not request extra chunks when not connected to chunk server",
                 !conn.containsCall(ConnCall.REQUEST_CHUNKS));
+    }
+
+    public void testUnloadsChunksOverCapOnGameChunkLoad() {
+        game.ingame = true;
+        conf.setMaxNumChunksLoaded(0);
+        Pos2[] chunks = {
+                new Pos2(7, 0),
+                new Pos2(5, 0),
+                new Pos2(3, 0),
+        };
+        game.loadedChunks.addAll(Arrays.asList(chunks));
+
+        moreChunks.onReceiveGameChunk(new Chunk(new Pos2(0, 0), null));
+
+        for (Pos2 chunk : chunks) {
+            assertTrue("Should unload chunks over capacity on game chunk load: " + chunk,
+                    game.containsCall(snap ->
+                            snap.call == GameCall.UNLOAD_CHUNK
+                                    && snap.args[0] == chunk));
+        }
+    }
+
+    public void testUnloadsChunksOverCapOnExtraChunkLoad() {
+        game.ingame = true;
+        conf.setMaxNumChunksLoaded(0);
+        Pos2[] chunks = {
+                new Pos2(7, 0),
+                new Pos2(5, 0),
+                new Pos2(3, 0),
+        };
+        game.loadedChunks.addAll(Arrays.asList(chunks));
+
+        moreChunks.onReceiveExtraChunk(new Chunk(new Pos2(5, 0), null));
+
+        for (Pos2 chunk : chunks) {
+            assertTrue("Should unload chunks over capacity on game chunk load: " + chunk,
+                    game.containsCall(snap ->
+                            snap.call == GameCall.UNLOAD_CHUNK
+                                    && snap.args[0] == chunk));
+        }
     }
 }

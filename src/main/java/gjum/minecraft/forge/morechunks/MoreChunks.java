@@ -1,9 +1,7 @@
 package gjum.minecraft.forge.morechunks;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class MoreChunks implements IMoreChunks {
     private final IMcGame game;
@@ -57,6 +55,8 @@ public class MoreChunks implements IMoreChunks {
         // TODO only ignore if loaded chunk is game chunk, to allow updating with more recent extra chunks
 
         game.loadChunk(chunk);
+
+        unloadChunksOverCap();
     }
 
     @Override
@@ -66,6 +66,7 @@ public class MoreChunks implements IMoreChunks {
         }
         unloadChunksOutsideRenderDistance();
         requestExtraChunks();
+        unloadChunksOverCap();
     }
 
     @Override
@@ -78,7 +79,15 @@ public class MoreChunks implements IMoreChunks {
 
     private void requestExtraChunks() {
         if (!chunkServer.isConnected()) return;
+
         List<Pos2> loadableChunks = getLoadableChunks();
+
+        // apply limit
+        // TODO sort loadable chunks by interest instead (e.g. within player's walking direction)
+        loadableChunks = sortByPlayerDistance(loadableChunks);
+        final int chunkLoadLimit = conf.getMaxNumChunksLoaded() - game.getLoadedChunks().size();
+        loadableChunks = loadableChunks.stream().limit(chunkLoadLimit).collect(Collectors.toList());
+
         chunkServer.requestChunks(loadableChunks);
     }
 
@@ -112,6 +121,18 @@ public class MoreChunks implements IMoreChunks {
         return loadable;
     }
 
+    /**
+     * Sort chunk positions by taxicab distance to the player, in-place, ascending.
+     *
+     * @param chunks chunk positions to sort
+     * @return sorted chunk positions
+     */
+    private List<Pos2> sortByPlayerDistance(List<Pos2> chunks) {
+        final Pos2 player = game.getPlayerChunkPos();
+        chunks.sort(Comparator.comparingDouble(player::taxicabDistance));
+        return chunks;
+    }
+
     private void retryConnectChunkServer() {
         if (chunkServer.isConnected()) return;
         if (!game.isIngame()) return;
@@ -136,6 +157,20 @@ public class MoreChunks implements IMoreChunks {
         }
         for (Pos2 chunkPos : chunksToUnload) {
             game.unloadChunk(chunkPos);
+        }
+    }
+
+    /**
+     * Check if too many chunks are loaded, and unload the far away ones.
+     */
+    private void unloadChunksOverCap() {
+        // TODO do not unload extra chunks over cap when only recently loaded, this could prevent flickering
+        if (game.getLoadedChunks().size() > conf.getMaxNumChunksLoaded()) {
+            PriorityQueue<Pos2> closeChunks = new PriorityQueue<>(Comparator.comparingDouble(game.getPlayerChunkPos()::taxicabDistance));
+            closeChunks.addAll(game.getLoadedChunks());
+            closeChunks.stream()
+                    .skip(conf.getMaxNumChunksLoaded())
+                    .forEach(game::unloadChunk);
         }
     }
 }

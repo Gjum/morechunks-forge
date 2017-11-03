@@ -7,5 +7,11 @@ public interface IConfig {
 
     boolean canPublishChunk(Pos2 chunkPos);
 
+    int getMaxNumChunksLoaded();
+
     int getServerRenderDistance();
+
+    void setMaxNumChunksLoaded(int maxNumChunksLoaded);
+
+    void setServerRenderDistance(int serverRenderDistance);
 }

@@ -1,6 +1,9 @@
 package gjum.minecraft.forge.morechunks;
 
 public class MoreChunksConfig implements IConfig {
+    private int maxNumChunksLoaded = 16 * 16;
+    private int serverRenderDistance = 4;
+
     // TODO cache blacklist using bitwise filter thing
     // because there will be lots of non-matches, which that data structure is optimized for
 
@@ -22,7 +25,22 @@ public class MoreChunksConfig implements IConfig {
     }
 
     @Override
+    public int getMaxNumChunksLoaded() {
+        return maxNumChunksLoaded;
+    }
+
+    @Override
     public int getServerRenderDistance() {
-        return 4;
+        return serverRenderDistance;
+    }
+
+    @Override
+    public void setMaxNumChunksLoaded(int maxNumChunksLoaded) {
+        this.maxNumChunksLoaded = maxNumChunksLoaded;
+    }
+
+    @Override
+    public void setServerRenderDistance(int serverRenderDistance) {
+        this.serverRenderDistance = serverRenderDistance;
     }
 }
