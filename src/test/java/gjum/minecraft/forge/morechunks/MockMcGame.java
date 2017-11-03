@@ -18,7 +18,7 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
 
     @Override
     public void unloadChunk(Pos2 chunkPos) {
-        trackCall(GameCall.UNLOAD_CHUNK);
+        trackCall(GameCall.UNLOAD_CHUNK, chunkPos);
         loadedChunks.remove(chunkPos);
     }
 

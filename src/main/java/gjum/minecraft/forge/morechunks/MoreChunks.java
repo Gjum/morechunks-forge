@@ -1,16 +1,18 @@
 package gjum.minecraft.forge.morechunks;
 
+import java.util.ArrayList;
+
 public class MoreChunks implements IMoreChunks {
     private final IMcGame game;
-    private final IChunkServerConnection conn;
+    private final IChunkServerConnection chunkServer;
     private final IConfig conf;
     private final IEnv env;
     private long nextReconnectTime = 0;
     private long nextRetryInterval = 1000;
 
-    public MoreChunks(IMcGame game, IChunkServerConnection conn, IConfig conf, IEnv env) {
+    public MoreChunks(IMcGame game, IChunkServerConnection chunkServer, IConfig conf, IEnv env) {
         this.game = game;
-        this.conn = conn;
+        this.chunkServer = chunkServer;
         this.conf = conf;
         this.env = env;
     }
@@ -20,7 +22,7 @@ public class MoreChunks implements IMoreChunks {
         nextReconnectTime = env.currentTimeMillis();
         nextRetryInterval = 1000;
         if (!game.isIngame()) {
-            conn.disconnect(new DisconnectReason("Manual disconnect: No game running"));
+            chunkServer.disconnect(new DisconnectReason("Manual disconnect: No game running"));
         }
     }
 
@@ -36,29 +38,35 @@ public class MoreChunks implements IMoreChunks {
 
     @Override
     public void onGameDisconnected() {
-        if (conn.isConnected()) {
-            conn.disconnect(new DisconnectReason("Manual disconnect: Game ending"));
+        if (chunkServer.isConnected()) {
+            chunkServer.disconnect(new DisconnectReason("Manual disconnect: Game ending"));
         }
     }
 
     @Override
     public void onReceiveExtraChunk(Chunk chunk) {
         if (!game.isIngame()) return;
+
         final int chunkDistance = chunk.pos.maxisDistance(game.getPlayerChunkPos());
         if (chunkDistance > game.getRenderDistance()) return;
-        // TODO ignore if there's already a game chunk at that pos
+
+        if (game.getLoadedChunks().contains(chunk.pos)) return;
+        // TODO only ignore if loaded chunk is game chunk, to allow updating with more recent extra chunks
+
         game.loadChunk(chunk);
-        // TODO track as extra chunk
     }
 
     @Override
     public void onReceiveGameChunk(Chunk chunk) {
-        // TODO auto-generated method stub
+        if (chunkServer.isConnected()) {
+            chunkServer.sendChunk(chunk);
+        }
+        unloadChunksOutsideRenderDistance();
     }
 
     @Override
     public void onTick() {
-        if (!conn.isConnected()) {
+        if (!chunkServer.isConnected()) {
             retryConnectChunkServer();
             return;
         }
@@ -72,7 +80,7 @@ public class MoreChunks implements IMoreChunks {
     }
 
     private void retryConnectChunkServer() {
-        if (conn.isConnected()) return;
+        if (chunkServer.isConnected()) return;
         if (!game.isIngame()) return;
 
         final long now = env.currentTimeMillis();
@@ -81,6 +89,20 @@ public class MoreChunks implements IMoreChunks {
         nextReconnectTime = now + nextRetryInterval;
         nextRetryInterval *= 2;
 
-        conn.connect();
+        chunkServer.connect();
+    }
+
+    private void unloadChunksOutsideRenderDistance() {
+        final Pos2 player = game.getPlayerChunkPos();
+        int renderDistance = game.getRenderDistance();
+        ArrayList<Pos2> chunksToUnload = new ArrayList<>();
+        for (Pos2 chunkPos : game.getLoadedChunks()) {
+            if (player.maxisDistance(chunkPos) > renderDistance) {
+                chunksToUnload.add(chunkPos);
+            }
+        }
+        for (Pos2 chunkPos : chunksToUnload) {
+            game.unloadChunk(chunkPos);
+        }
     }
 }

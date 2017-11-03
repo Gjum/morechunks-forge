@@ -2,6 +2,7 @@ package gjum.minecraft.forge.morechunks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class CallTracker<Call> {
     final List<CallSnap> calls = new ArrayList<>();
@@ -16,6 +17,10 @@ public class CallTracker<Call> {
 
     public boolean containsCall(Call call) {
         return calls.stream().anyMatch(snap -> snap.call == call);
+    }
+
+    public boolean containsCall(Predicate<CallSnap> p) {
+        return calls.stream().anyMatch(p);
     }
 
     class CallSnap {
