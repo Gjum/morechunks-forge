@@ -1,5 +1,7 @@
 package gjum.minecraft.forge.morechunks;
 
+import java.util.Collection;
+
 public class MockChunkServerConnection extends CallTracker<MockChunkServerConnection.ConnCall> implements IChunkServerConnection {
     boolean connected = false;
 
@@ -17,13 +19,13 @@ public class MockChunkServerConnection extends CallTracker<MockChunkServerConnec
     }
 
     @Override
-    public void disconnect() {
-        trackCall(ConnCall.DISCONNECT);
+    public void disconnect(DisconnectReason reason) {
+        trackCall(ConnCall.DISCONNECT, reason);
     }
 
     @Override
-    public void requestChunk(Pos2 chunkPos) {
-        trackCall(ConnCall.REQUEST_CHUNK, chunkPos);
+    public void requestChunks(Collection<Pos2> chunksPos) {
+        trackCall(ConnCall.REQUEST_CHUNK, chunksPos);
     }
 
     @Override

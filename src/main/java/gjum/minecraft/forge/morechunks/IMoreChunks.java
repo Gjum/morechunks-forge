@@ -7,5 +7,5 @@ public interface IMoreChunks {
     void onGameDisconnected();
     void onReceiveExtraChunk(Chunk chunk);
     void onReceiveGameChunk(Chunk chunk);
-    void onTick(long timeMs);
+    void onTick();
 }

@@ -9,13 +9,15 @@ public class MoreChunksConnectionTest extends TestCase {
     private MockMcGame game;
     private MockChunkServerConnection conn;
     private IConfig conf;
+    private MockEnv env;
 
     public void setUp() throws Exception {
         super.setUp();
         game = new MockMcGame();
         conn = new MockChunkServerConnection();
         conf = new MoreChunksConfig();
-        moreChunks = new MoreChunks(game, conn, conf);
+        env = new MockEnv();
+        moreChunks = new MoreChunks(game, conn, conf, env);
     }
 
     public void testConnectsChunkServerOnJoinGame() {
@@ -28,6 +30,7 @@ public class MoreChunksConnectionTest extends TestCase {
         conn.connected = true;
         moreChunks.onGameDisconnected();
         assertEquals(ConnCall.DISCONNECT, conn.getLastCall().call);
+        assertEquals("Manual disconnect: Game ending", ((DisconnectReason) conn.getLastCall().args[0]).description);
     }
 
     public void testReconnectsOnChunkServerDisconnectWhenIngame() {
@@ -49,6 +52,7 @@ public class MoreChunksConnectionTest extends TestCase {
         game.ingame = false;
         moreChunks.onChunkServerConnected();
         assertEquals(ConnCall.DISCONNECT, conn.getLastCall().call);
+        assertEquals("Manual disconnect: No game running", ((DisconnectReason) conn.getLastCall().args[0]).description);
     }
 
     public void testNoReconnectOnConnectChunkServerWhenNotIngame() {

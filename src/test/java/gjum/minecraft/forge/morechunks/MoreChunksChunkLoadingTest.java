@@ -9,13 +9,15 @@ public class MoreChunksChunkLoadingTest extends TestCase {
     private MockMcGame game;
     private MockChunkServerConnection conn;
     private IConfig conf;
+    private MockEnv env;
 
     public void setUp() throws Exception {
         super.setUp();
         game = new MockMcGame();
         conn = new MockChunkServerConnection();
         conf = new MoreChunksConfig();
-        moreChunks = new MoreChunks(game, conn, conf);
+        env = new MockEnv();
+        moreChunks = new MoreChunks(game, conn, conf, env);
     }
 
     public void testLoadsExtraChunk() {

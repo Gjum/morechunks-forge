@@ -4,24 +4,27 @@ public class MoreChunks implements IMoreChunks {
     private final IMcGame game;
     private final IChunkServerConnection conn;
     private final IConfig conf;
+    private final IEnv env;
 
-    public MoreChunks(IMcGame game, IChunkServerConnection conn, IConfig conf) {
+    public MoreChunks(IMcGame game, IChunkServerConnection conn, IConfig conf, IEnv env) {
         this.game = game;
         this.conn = conn;
         this.conf = conf;
+        this.env = env;
     }
 
     @Override
     public void onChunkServerConnected() {
+        // TODO reset timeout
         if (!game.isIngame()) {
-            conn.disconnect();
+            conn.disconnect(new DisconnectReason("Manual disconnect: No game running"));
         }
     }
 
     @Override
     public void onChunkServerDisconnected() {
         if (conn.isConnected()) return;
-        // TODO timeout
+        // TODO just start the timeout, the actual connection happens in onTick
         if (game.isIngame()) {
             conn.connect();
         }
@@ -37,7 +40,7 @@ public class MoreChunks implements IMoreChunks {
     @Override
     public void onGameDisconnected() {
         if (conn.isConnected()) {
-            conn.disconnect();
+            conn.disconnect(new DisconnectReason("Manual disconnect: Game ending"));
         }
     }
 
@@ -46,7 +49,9 @@ public class MoreChunks implements IMoreChunks {
         if (!game.isIngame()) return;
         final int chunkDistance = chunk.pos.maxisDistance(game.getPlayerChunkPos());
         if (chunkDistance > game.getRenderDistance()) return;
+        // TODO ignore if there's already a game chunk at that pos
         game.loadChunk(chunk);
+        // TODO track as extra chunk
     }
 
     @Override
@@ -55,7 +60,21 @@ public class MoreChunks implements IMoreChunks {
     }
 
     @Override
-    public void onTick(long timeMs) {
-        // TODO auto-generated method stub
+    public void onTick() {
+        if (conn.isConnected()) {
+            checkLoadExtraChunks();
+        } else {
+            checkRetryConnectChunkServer();
+        }
+    }
+
+    private void checkRetryConnectChunkServer() {
+        final long now = env.currentTimeMillis();
+        // TODO check if last reconnect failure is longer ago than current exponential backoff time
+    }
+
+    private void checkLoadExtraChunks() {
+        final long now = env.currentTimeMillis();
+        // TODO check if last game-chunk-load is longer ago than expected time between chunk loads
     }
 }
