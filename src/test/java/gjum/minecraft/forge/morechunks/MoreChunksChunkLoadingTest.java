@@ -26,7 +26,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
 
     public void testLoadsExtraChunk() {
         game.ingame = true;
-        final Chunk chunk = new Chunk(new Pos2(0, 0), null);
+        final Chunk chunk = new Chunk(new Pos2(5, 0), null);
         moreChunks.onReceiveExtraChunk(chunk);
         assertTrue("should load extra chunk",
                 game.containsCall(snap ->
@@ -36,7 +36,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
 
     public void testIgnoresExtraChunkWhenNotIngame() {
         game.ingame = false;
-        final Chunk chunk = new Chunk(new Pos2(0, 0), null);
+        final Chunk chunk = new Chunk(new Pos2(5, 0), null);
         moreChunks.onReceiveExtraChunk(chunk);
         assertFalse(game.containsCall(GameCall.LOAD_CHUNK));
     }
@@ -50,12 +50,12 @@ public class MoreChunksChunkLoadingTest extends TestCase {
 
     public void testIgnoresExtraChunkWhenHasGameChunkThere() {
         game.ingame = true;
-        final Chunk gameChunk = new Chunk(new Pos2(0, 0), null);
+        final Chunk gameChunk = new Chunk(new Pos2(6, 0), null);
         moreChunks.onReceiveGameChunk(gameChunk);
         game.calls.clear();
         game.loadedChunks.add(gameChunk.pos);
 
-        final Chunk extraChunk = new Chunk(new Pos2(0, 0), null);
+        final Chunk extraChunk = new Chunk(new Pos2(6, 0), null);
         moreChunks.onReceiveExtraChunk(extraChunk);
         assertTrue("Should not load extra chunk if there's already a game chunk there",
                 !game.containsCall(GameCall.LOAD_CHUNK));

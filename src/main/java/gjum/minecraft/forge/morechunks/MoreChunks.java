@@ -51,8 +51,7 @@ public class MoreChunks implements IMoreChunks {
         final int chunkDistance = chunk.pos.chebyshevDistance(game.getPlayerChunkPos());
         if (chunkDistance > game.getRenderDistance()) return;
 
-        if (game.getLoadedChunks().contains(chunk.pos)) return;
-        // TODO only ignore if loaded chunk is game chunk, to allow updating with more recent extra chunks
+        if (chunkDistance <= conf.getServerRenderDistance()) return;
 
         game.loadChunk(chunk);
 
