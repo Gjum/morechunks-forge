@@ -1,4 +1,4 @@
-version = "0.0.1"
+version = "1.0.0"
 
 import org.ajoberstar.grgit.Grgit
 import org.ajoberstar.grgit.exception.GrgitException
@@ -63,6 +63,8 @@ minecraft {
 
 dependencies {
     // put dependency jars in ./libs
+
+    testCompile 'junit:junit:4.12'
 }
 
 processResources
