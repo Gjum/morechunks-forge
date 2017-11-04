@@ -31,20 +31,20 @@ public class MoreChunksConnectionTest extends TestCase {
         conn.connected = true;
         moreChunks.onGameDisconnected();
         assertEquals(ConnCall.DISCONNECT, conn.getLastCall().call);
-        assertEquals("Manual disconnect: Game ending", ((DisconnectReason) conn.getLastCall().args[0]).description);
+        assertEquals("MoreChunks: Game ending", ((DisconnectReason) conn.getLastCall().args[0]).description);
     }
 
     public void testReconnectsOnChunkServerDisconnectWhenIngame() {
         conn.connected = false;
         game.ingame = true;
-        moreChunks.onChunkServerDisconnected();
+        moreChunks.onChunkServerDisconnected(new DisconnectReason("Test"));
         assertEquals(ConnCall.CONNECT, conn.getLastCall().call);
     }
 
     public void testNoReconnectionOnChunkServerDisconnectWhenNotIngame() {
         conn.connected = false;
         game.ingame = false;
-        moreChunks.onChunkServerDisconnected();
+        moreChunks.onChunkServerDisconnected(new DisconnectReason("Test"));
         assertFalse(conn.containsCall(ConnCall.CONNECT));
     }
 
@@ -53,7 +53,7 @@ public class MoreChunksConnectionTest extends TestCase {
         game.ingame = false;
         moreChunks.onChunkServerConnected();
         assertEquals(ConnCall.DISCONNECT, conn.getLastCall().call);
-        assertEquals("Manual disconnect: No game running", ((DisconnectReason) conn.getLastCall().args[0]).description);
+        assertEquals("MoreChunks: No game running", ((DisconnectReason) conn.getLastCall().args[0]).description);
     }
 
     public void testNoReconnectOnConnectChunkServerWhenNotIngame() {
@@ -68,7 +68,7 @@ public class MoreChunksConnectionTest extends TestCase {
         conn.connected = false;
 
         env.nowMs = 0;
-        moreChunks.onChunkServerDisconnected();
+        moreChunks.onChunkServerDisconnected(new DisconnectReason("Test"));
         assertTrue("first reconnect attempt should happen instantly",
                 conn.containsCall(ConnCall.CONNECT));
 
@@ -78,7 +78,7 @@ public class MoreChunksConnectionTest extends TestCase {
         assertTrue("should not reconnect while waiting for timeout",
                 !conn.containsCall(ConnCall.CONNECT));
 
-        moreChunks.onChunkServerDisconnected();
+        moreChunks.onChunkServerDisconnected(new DisconnectReason("Test"));
         assertTrue("second reconnect attempt should not happen instantly",
                 !conn.containsCall(ConnCall.CONNECT));
 
@@ -114,7 +114,7 @@ public class MoreChunksConnectionTest extends TestCase {
         assertTrue("successful connection should not result in reconnect attempt",
                 !conn.containsCall(ConnCall.CONNECT));
 
-        moreChunks.onChunkServerDisconnected();
+        moreChunks.onChunkServerDisconnected(new DisconnectReason("Test"));
         assertTrue("successful connection should reset reconnect timeout",
                 conn.containsCall(ConnCall.CONNECT));
 
@@ -131,6 +131,7 @@ public class MoreChunksConnectionTest extends TestCase {
         moreChunks.onTick();
         assertTrue("successful connection should reset reconnect interval",
                 conn.containsCall(ConnCall.CONNECT));
-
     }
+
+    // TODO cap out reconnect time at 60sec
 }

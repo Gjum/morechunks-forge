@@ -6,4 +6,9 @@ public class DisconnectReason {
     public DisconnectReason(String description) {
         this.description = description;
     }
+
+    @Override
+    public String toString() {
+        return '"' + description + '"';
+    }
 }

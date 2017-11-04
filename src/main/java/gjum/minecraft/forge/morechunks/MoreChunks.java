@@ -22,13 +22,14 @@ public class MoreChunks implements IMoreChunks {
     public void onChunkServerConnected() {
         nextReconnectTime = env.currentTimeMillis();
         nextRetryInterval = 1000;
+
         if (!game.isIngame()) {
-            chunkServer.disconnect(new DisconnectReason("Manual disconnect: No game running"));
+            chunkServer.disconnect(new DisconnectReason("MoreChunks: No game running"));
         }
     }
 
     @Override
-    public void onChunkServerDisconnected() {
+    public void onChunkServerDisconnected(DisconnectReason reason) {
         retryConnectChunkServer();
     }
 
@@ -40,7 +41,7 @@ public class MoreChunks implements IMoreChunks {
     @Override
     public void onGameDisconnected() {
         if (chunkServer.isConnected()) {
-            chunkServer.disconnect(new DisconnectReason("Manual disconnect: Game ending"));
+            chunkServer.disconnect(new DisconnectReason("MoreChunks: Game ending"));
         }
     }
 

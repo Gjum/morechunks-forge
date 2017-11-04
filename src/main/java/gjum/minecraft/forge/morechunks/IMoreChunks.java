@@ -2,7 +2,7 @@ package gjum.minecraft.forge.morechunks;
 
 public interface IMoreChunks {
     void onChunkServerConnected();
-    void onChunkServerDisconnected();
+    void onChunkServerDisconnected(DisconnectReason reason);
     void onGameConnected();
     void onGameDisconnected();
     void onReceiveExtraChunk(Chunk chunk);
