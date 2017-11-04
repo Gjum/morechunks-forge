@@ -24,7 +24,10 @@ public class EnvTest extends TestCase {
 
         Env env = new Env();
         env.log(Level.INFO, "Hi there");
-        assertEquals("INFO [EnvTest.testLog@26] Hi there\n", baos.toString());
+
+        String msg = baos.toString();
+        assertTrue(msg.contains("INFO"));
+        assertTrue(msg.contains("[EnvTest.testLog@26] Hi there"));
 
         System.setOut(out);
         ps.close();
