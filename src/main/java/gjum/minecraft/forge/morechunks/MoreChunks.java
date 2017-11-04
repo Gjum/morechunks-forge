@@ -7,17 +7,22 @@ import java.util.stream.Collectors;
 
 public class MoreChunks implements IMoreChunks {
     private final IMcGame game;
-    private final IChunkServerConnection chunkServer;
     private final IConfig conf;
     private final IEnv env;
+
+    private IChunkServerConnection chunkServer;
+
     private long nextReconnectTime = 0;
     private long nextRetryInterval = 1000;
 
-    public MoreChunks(IMcGame game, IChunkServerConnection chunkServer, IConfig conf, IEnv env) {
+    public MoreChunks(IMcGame game, IConfig conf, IEnv env) {
         this.game = game;
-        this.chunkServer = chunkServer;
         this.conf = conf;
         this.env = env;
+    }
+
+    public void setChunkServer(IChunkServerConnection chunkServer) {
+        this.chunkServer = chunkServer;
     }
 
     @Override

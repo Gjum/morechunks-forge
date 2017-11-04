@@ -11,17 +11,18 @@ public class MoreChunksChunkLoadingTest extends TestCase {
 
     private MoreChunks moreChunks;
     private MockMcGame game;
-    private MockChunkServerConnection conn;
+    private MockChunkServerConnection chunkServer;
     private IConfig conf;
     private MockEnv env;
 
     public void setUp() throws Exception {
         super.setUp();
         game = new MockMcGame();
-        conn = new MockChunkServerConnection();
+        chunkServer = new MockChunkServerConnection();
         conf = new MoreChunksConfig();
         env = new MockEnv();
-        moreChunks = new MoreChunks(game, conn, conf, env);
+        moreChunks = new MoreChunks(game, conf, env);
+        moreChunks.setChunkServer(chunkServer);
     }
 
     public void testLoadsExtraChunk() {
@@ -62,21 +63,21 @@ public class MoreChunksChunkLoadingTest extends TestCase {
     }
 
     public void testForwardsChunkToChunkServer() {
-        conn.connected = true;
+        chunkServer.connected = true;
         final Chunk chunk = new Chunk(new Pos2(2, 3), null);
         moreChunks.onReceiveGameChunk(chunk);
         assertTrue("should forward game chunk to chunk server",
-                conn.containsCall(snap ->
+                chunkServer.containsCall(snap ->
                         snap.call == ConnCall.SEND_CHUNK
                                 && snap.args[0] == chunk));
     }
 
     public void testDoesNotForwardChunkIfNotConnectedToChunkServer() {
-        conn.connected = false;
+        chunkServer.connected = false;
         final Chunk chunk = new Chunk(new Pos2(2, 3), null);
         moreChunks.onReceiveGameChunk(chunk);
         assertTrue("should not forward game chunk when not connected to chunk server",
-                !conn.containsCall(ConnCall.SEND_CHUNK));
+                !chunkServer.containsCall(ConnCall.SEND_CHUNK));
     }
 
     public void testOnGameChunkUnloadFarButKeepCloseChunks() {
@@ -99,16 +100,16 @@ public class MoreChunksChunkLoadingTest extends TestCase {
     }
 
     private boolean didRequestForChunkAt(Pos2 pos) {
-        return conn.containsCall(snap -> {
+        return chunkServer.containsCall(snap -> {
             if (snap.call != ConnCall.REQUEST_CHUNKS) return false;
-            //noinspection unchecked
+            @SuppressWarnings("unchecked")
             List<Pos2> posList = (List<Pos2>) snap.args[0];
             return posList.contains(pos);
         });
     }
 
     public void testRequestsExtraChunks() {
-        conn.connected = true;
+        chunkServer.connected = true;
         game.ingame = true;
         moreChunks.onReceiveGameChunk(new Chunk(new Pos2(0, 0), null));
 
@@ -123,7 +124,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
     }
 
     public void testDoesNotRequestExtraChunksForLoadedChunks() {
-        conn.connected = true;
+        chunkServer.connected = true;
         game.ingame = true;
         Pos2 alreadyLoaded = new Pos2(5, 1);
         game.loadedChunks.add(alreadyLoaded);
@@ -135,12 +136,12 @@ public class MoreChunksChunkLoadingTest extends TestCase {
     }
 
     public void testDoesNotRequestExtraChunksWhenNotConnected() {
-        conn.connected = false;
+        chunkServer.connected = false;
         game.ingame = true;
         moreChunks.onReceiveGameChunk(new Chunk(new Pos2(0, 0), null));
 
         assertTrue("should not request extra chunks when not connected to chunk server",
-                !conn.containsCall(ConnCall.REQUEST_CHUNKS));
+                !chunkServer.containsCall(ConnCall.REQUEST_CHUNKS));
     }
 
     public void testUnloadsChunksOverCapOnGameChunkLoad() {

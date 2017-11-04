@@ -76,8 +76,6 @@ public class ChunkServerConnection implements IChunkServerConnection {
                 return;
             }
 
-            moreChunks.onChunkServerConnected();
-
             sendStringMsg("mod.version " + ChunkFixMod.VERSION);
 
             NetHandlerPlayClient mcConn = Minecraft.getMinecraft().getConnection();
@@ -87,6 +85,8 @@ public class ChunkServerConnection implements IChunkServerConnection {
                 SocketAddress mcServerAddress = mcConn.getNetworkManager().channel().remoteAddress();
                 sendStringMsg("game.address " + mcServerAddress);
             }
+
+            moreChunks.onChunkServerConnected();
         });
     }
 
