@@ -9,9 +9,17 @@ public interface IConfig {
 
     int getMaxNumChunksLoaded();
 
+    int getPort();
+
     int getServerRenderDistance();
 
+    String getHostname();
+
+    void setHostname(String hostname);
+
     void setMaxNumChunksLoaded(int maxNumChunksLoaded);
+
+    void setPort(int port);
 
     void setServerRenderDistance(int serverRenderDistance);
 }

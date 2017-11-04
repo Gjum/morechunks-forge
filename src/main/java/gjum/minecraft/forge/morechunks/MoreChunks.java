@@ -1,5 +1,7 @@
 package gjum.minecraft.forge.morechunks;
 
+import org.apache.logging.log4j.Level;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -30,6 +32,7 @@ public class MoreChunks implements IMoreChunks {
 
     @Override
     public void onChunkServerDisconnected(DisconnectReason reason) {
+        env.log("MoreChunks", Level.WARN, "ChunkServerDisconnected: %s", reason);
         retryConnectChunkServer();
     }
 

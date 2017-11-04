@@ -1,7 +1,9 @@
 package gjum.minecraft.forge.morechunks;
 
 public class MoreChunksConfig implements IConfig {
+    private String hostname;
     private int maxNumChunksLoaded = 16 * 16;
+    private int port;
     private int serverRenderDistance = 4;
 
     // TODO cache blacklist using bitwise filter thing
@@ -25,8 +27,18 @@ public class MoreChunksConfig implements IConfig {
     }
 
     @Override
+    public String getHostname() {
+        return hostname;
+    }
+
+    @Override
     public int getMaxNumChunksLoaded() {
         return maxNumChunksLoaded;
+    }
+
+    @Override
+    public int getPort() {
+        return port;
     }
 
     @Override
@@ -35,8 +47,18 @@ public class MoreChunksConfig implements IConfig {
     }
 
     @Override
+    public void setHostname(String hostname) {
+        this.hostname = hostname;
+    }
+
+    @Override
     public void setMaxNumChunksLoaded(int maxNumChunksLoaded) {
         this.maxNumChunksLoaded = maxNumChunksLoaded;
+    }
+
+    @Override
+    public void setPort(int port) {
+        this.port = port;
     }
 
     @Override
