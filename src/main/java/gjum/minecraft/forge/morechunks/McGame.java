@@ -12,8 +12,6 @@ import org.apache.logging.log4j.Level;
 import java.util.ArrayList;
 import java.util.List;
 
-import static gjum.minecraft.forge.morechunks.PacketHandler.convertChunk;
-
 public class McGame implements IMcGame {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private IEnv env;
@@ -52,15 +50,6 @@ public class McGame implements IMcGame {
 
     @Override
     public void loadChunk(Chunk chunk) {
-        SPacketChunkData packet;
-        try {
-            packet = convertChunk(chunk);
-        } catch (IOException e) {
-            env.log(Level.WARN, "Failed converting extra chunk at %s", chunk.pos);
-            e.printStackTrace();
-            return;
-        }
-
         // load into game by pretending this comes from the game server
         runOnMcThread(() -> {
             NetHandlerPlayClient conn = mc.getConnection();
@@ -68,7 +57,7 @@ public class McGame implements IMcGame {
                 env.log(Level.ERROR, "mc.connection == null, ignoring extra chunk at %s", chunk.pos);
                 return;
             }
-            conn.handleChunkData(packet);
+            conn.handleChunkData(chunk.packet);
             env.log(Level.DEBUG, "Successfully loaded chunk at %s", chunk.pos);
         });
     }

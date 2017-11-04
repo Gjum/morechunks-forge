@@ -11,9 +11,12 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.NetHandlerPlayClient;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.play.server.SPacketChunkData;
 import net.minecraft.util.LazyLoadBase;
 import org.apache.logging.log4j.Level;
 
+import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.Collection;
 
@@ -137,11 +140,20 @@ public class ChunkServer implements IChunkServer {
         }
 
         env.log(Level.DEBUG, "sending chunk to server: %s", chunk.pos);
+
+        PacketBuffer chunkDataBuf = new PacketBuffer(channel.alloc().buffer());
+        try {
+            chunk.packet.writePacketData(chunkDataBuf);
+        } catch (IOException e) {
+            env.log(Level.ERROR, "Failed to serialize chunk at %s", chunk.pos);
+            e.printStackTrace();
+            return;
+        }
+
         channel.writeAndFlush(channel.alloc().buffer()
                 .writeByte(SEND_CHUNK_DATA)
                 .writeLong(env.currentTimeMillis())
-                .writeLong(chunk.pos.asLong())
-                .writeBytes(chunk.data)
+                .writeBytes(chunkDataBuf)
         );
     }
 
@@ -177,11 +189,11 @@ public class ChunkServer implements IChunkServer {
                             break;
                         }
 
-                        Pos2 pos = Pos2.fromLong(msg.readLong());
-                        byte[] bytes = new byte[msg.readableBytes()];
-                        msg.readBytes(bytes);
+                        SPacketChunkData chunkPacket = new SPacketChunkData();
+                        chunkPacket.readPacketData(new PacketBuffer(msg));
+                        Pos2 pos = new Pos2(chunkPacket.getChunkX(), chunkPacket.getChunkZ());
 
-                        moreChunks.onReceiveExtraChunk(new Chunk(pos, bytes));
+                        moreChunks.onReceiveExtraChunk(new Chunk(pos, chunkPacket));
                         break;
 
                     case RECV_STATUS_MSG:
@@ -195,6 +207,8 @@ public class ChunkServer implements IChunkServer {
                     default:
                         env.log(Level.ERROR, "Unexpected message type %d 0x%02x", msgType, msgType);
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             } finally {
                 msg.release();
             }

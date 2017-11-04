@@ -1,14 +1,13 @@
 package gjum.minecraft.forge.morechunks;
 
-import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.*;
 import net.minecraft.network.Packet;
-import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.server.SPacketChunkData;
 import net.minecraft.network.play.server.SPacketUnloadChunk;
 
-import java.io.IOException;
 import java.net.SocketAddress;
+
+import static gjum.minecraft.forge.morechunks.ChunkData.convertChunk;
 
 /**
  * Hook into Minecraft's packet pipeline
@@ -35,35 +34,6 @@ public class PacketHandler extends SimpleChannelInboundHandler<Packet<?>> implem
             moreChunks.onReceiveGameChunk(convertChunk((SPacketChunkData) packet));
         }
         ctx.fireChannelRead(packet);
-    }
-
-    static Chunk convertChunk(SPacketChunkData chunkPacket) throws IOException {
-        UnpooledByteBufAllocator alloc = new UnpooledByteBufAllocator(false);
-        PacketBuffer pb = new PacketBuffer(alloc.buffer());
-
-        chunkPacket.writePacketData(pb);
-        pb.readLong(); // skip chunk coords
-        byte[] chunkData = pb.readByteArray();
-
-        pb.release();
-
-        Pos2 pos = new Pos2(chunkPacket.getChunkX(), chunkPacket.getChunkZ());
-        return new Chunk(pos, chunkData);
-    }
-
-    static SPacketChunkData convertChunk(Chunk chunk) throws IOException {
-        UnpooledByteBufAllocator alloc = new UnpooledByteBufAllocator(false);
-        PacketBuffer pb = new PacketBuffer(alloc.buffer());
-
-        pb.writeLong(chunk.pos.asLong());
-        pb.writeBytes(chunk.data);
-
-        SPacketChunkData chunkPacket = new SPacketChunkData();
-        chunkPacket.readPacketData(pb);
-
-        pb.release();
-
-        return chunkPacket;
     }
 
     @Override
