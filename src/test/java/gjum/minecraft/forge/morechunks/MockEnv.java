@@ -11,6 +11,6 @@ public class MockEnv implements IEnv {
     }
 
     @Override
-    public void log(String source, Level level, String format, Object... args) {
+    public void log(Level level, String format, Object... args) {
     }
 }

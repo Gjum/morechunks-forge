@@ -51,7 +51,7 @@ public class McGame implements IMcGame {
 
     @Override
     public void loadChunk(Chunk chunk) {
-        env.log("McGame", Level.DEBUG, "received extra chunk at %s", chunk.pos);
+        env.log(Level.DEBUG, "received extra chunk at %s", chunk.pos);
 
         SPacketChunkData packet;
         try {
@@ -61,23 +61,23 @@ public class McGame implements IMcGame {
             return;
         }
 
-        env.log("McGame", Level.DEBUG, "converted extra chunk at %s", chunk.pos);
+        env.log(Level.DEBUG, "converted extra chunk at %s", chunk.pos);
 
         // load into game by pretending this comes from the game server
         mc.addScheduledTask(() -> {
             NetHandlerPlayClient conn = mc.getConnection();
             if (conn == null) {
-                env.log("McGame", Level.ERROR, "mc.connection == null, ignoring extra chunk at %s", chunk.pos);
+                env.log(Level.ERROR, "mc.connection == null, ignoring extra chunk at %s", chunk.pos);
                 return;
             }
             conn.handleChunkData(packet);
-            env.log("McGame", Level.DEBUG, "Successfully loaded chunk at %s", chunk.pos);
+            env.log(Level.DEBUG, "Successfully loaded chunk at %s", chunk.pos);
         });
     }
 
     @Override
     public void unloadChunk(Pos2 chunkPos) {
-        env.log("McGame", Level.DEBUG, "unloading chunk at %s", chunkPos);
+        env.log(Level.DEBUG, "unloading chunk at %s", chunkPos);
         // TODO implement
     }
 

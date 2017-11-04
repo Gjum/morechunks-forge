@@ -44,11 +44,11 @@ public class ChunkServerConnection implements IChunkServerConnection {
     @Override
     public synchronized void connect() {
         if (isConnected()) {
-            env.log("ChunkServer", Level.WARN, "already connected");
+            env.log(Level.WARN, "already connected");
             return;
         }
 
-        env.log("ChunkServer", Level.INFO, "Connecting to %s:%d", conf.getHostname(), conf.getPort());
+        env.log(Level.INFO, "Connecting to %s:%d", conf.getHostname(), conf.getPort());
 
         Bootstrap bootstrap = new Bootstrap()
                 .group(getLoopGroup().getValue())
@@ -80,7 +80,7 @@ public class ChunkServerConnection implements IChunkServerConnection {
 
             NetHandlerPlayClient mcConn = Minecraft.getMinecraft().getConnection();
             if (mcConn == null) {
-                env.log("ChunkServer", Level.ERROR, "mcConn == null");
+                env.log(Level.ERROR, "mcConn == null");
             } else {
                 SocketAddress mcServerAddress = mcConn.getNetworkManager().channel().remoteAddress();
                 sendStringMsg("game.address " + mcServerAddress);
@@ -109,7 +109,7 @@ public class ChunkServerConnection implements IChunkServerConnection {
      */
     @Override
     public void requestChunks(Collection<Pos2> chunksPos) {
-        env.log("ChunkServer", Level.DEBUG, "Requesting %d chunks", chunksPos.size());
+        env.log(Level.DEBUG, "Requesting %d chunks", chunksPos.size());
         ByteBuf buf = channel.alloc().buffer()
                 .writeByte(SEND_CHUNKS_REQUEST);
         for (Pos2 pos : chunksPos) {
@@ -126,7 +126,7 @@ public class ChunkServerConnection implements IChunkServerConnection {
      */
     @Override
     public void sendChunk(Chunk chunk) {
-        env.log("ChunkServer", Level.DEBUG, "sending chunk to server: %d,%d", chunk.pos.x, chunk.pos.z);
+        env.log(Level.DEBUG, "sending chunk to server: %d,%d", chunk.pos.x, chunk.pos.z);
         channel.writeAndFlush(channel.alloc().buffer()
                 .writeByte(SEND_CHUNK_DATA)
                 .writeLong(env.currentTimeMillis())
@@ -141,7 +141,7 @@ public class ChunkServerConnection implements IChunkServerConnection {
      * - message (bytes): encoded message string
      */
     public void sendStringMsg(String message) {
-        env.log("ChunkServer", Level.DEBUG, "Sending msg " + message);
+        env.log(Level.DEBUG, "Sending msg " + message);
         channel.writeAndFlush(channel.alloc().buffer()
                 .writeByte(SEND_STRING_MSG)
                 .writeBytes(message.getBytes())
@@ -158,7 +158,7 @@ public class ChunkServerConnection implements IChunkServerConnection {
 
                     case RECV_CHUNK_DATA:
                         if (!msg.isReadable()) {
-                            env.log("ChunkServer", Level.DEBUG, "empty chunk received");
+                            env.log(Level.DEBUG, "empty chunk received");
                             break;
                         }
 
@@ -174,11 +174,11 @@ public class ChunkServerConnection implements IChunkServerConnection {
                         msg.readBytes(bb);
                         String statusMsg = new String(bb);
 
-                        env.log("ChunkServer", Level.DEBUG, "StatusMsg received: " + statusMsg);
+                        env.log(Level.DEBUG, "StatusMsg received: " + statusMsg);
                         break;
 
                     default:
-                        env.log("ChunkServer", Level.ERROR, "Unexpected message type %d 0x%02x", msgType, msgType);
+                        env.log(Level.ERROR, "Unexpected message type %d 0x%02x", msgType, msgType);
                 }
             } finally {
                 msg.release();

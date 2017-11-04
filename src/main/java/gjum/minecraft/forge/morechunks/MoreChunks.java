@@ -37,7 +37,7 @@ public class MoreChunks implements IMoreChunks {
 
     @Override
     public void onChunkServerDisconnected(DisconnectReason reason) {
-        env.log("MoreChunks", Level.WARN, "ChunkServerDisconnected: %s", reason);
+        env.log(Level.WARN, "ChunkServerDisconnected: %s", reason);
         retryConnectChunkServer();
     }
 
