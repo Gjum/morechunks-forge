@@ -1,5 +1,8 @@
 package gjum.minecraft.forge.morechunks;
 
+import java.io.File;
+import java.io.IOException;
+
 public interface IConfig {
     void blacklistCircle(Pos2 center, int radius);
 
@@ -14,6 +17,12 @@ public interface IConfig {
     int getServerRenderDistance();
 
     String getHostname();
+
+    void load(File configFile) throws IOException;
+
+    void save() throws IOException;
+
+    void save(File configFile) throws IOException;
 
     void setHostname(String hostname);
 

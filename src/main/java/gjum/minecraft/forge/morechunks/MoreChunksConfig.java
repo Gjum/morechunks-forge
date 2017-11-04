@@ -1,10 +1,18 @@
 package gjum.minecraft.forge.morechunks;
 
+import com.google.gson.Gson;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+
 public class MoreChunksConfig implements IConfig {
     private String hostname;
     private int maxNumChunksLoaded = 16 * 16;
     private int port;
     private int serverRenderDistance = 4;
+    private File configFile;
 
     // TODO cache blacklist using bitwise filter thing
     // because there will be lots of non-matches, which that data structure is optimized for
@@ -44,6 +52,37 @@ public class MoreChunksConfig implements IConfig {
     @Override
     public int getServerRenderDistance() {
         return serverRenderDistance;
+    }
+
+    @Override
+    public void load(File configFile) throws IOException {
+        this.configFile = configFile;
+        if (!configFile.canRead()) {
+            // load defaults
+            hostname = "gjum.isteinvids.co.uk";
+            maxNumChunksLoaded = 16 * 16;
+            port = 12312;
+            serverRenderDistance = 4;
+            return;
+        }
+
+        FileReader reader = new FileReader(configFile);
+        new Gson().fromJson(reader, this.getClass());
+        reader.close();
+    }
+
+    @Override
+    public void save() throws IOException {
+        save(this.configFile);
+    }
+
+    @Override
+    public void save(File configFile) throws IOException {
+        this.configFile = configFile;
+        String json = new Gson().toJson(this);
+        FileOutputStream fos = new FileOutputStream(configFile);
+        fos.write(json.getBytes());
+        fos.close();
     }
 
     @Override
