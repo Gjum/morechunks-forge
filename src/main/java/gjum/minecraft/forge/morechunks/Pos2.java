@@ -3,9 +3,8 @@ package gjum.minecraft.forge.morechunks;
 public class Pos2 {
     public final int x, z;
 
-    @Override
-    public String toString() {
-        return String.format("Pos2{%d, %d}", x, z);
+    public static Pos2 fromLong(long l) {
+        return new Pos2((int) l, (int) (l >> 32));
     }
 
     public Pos2(int x, int z) {
@@ -35,8 +34,19 @@ public class Pos2 {
 //        return lvt_1_1_ ^ lvt_2_1_;
     }
 
+    @Override
+    public String toString() {
+        return String.format("Pos2{%d, %d}", x, z);
+    }
+
     public int chebyshevDistance(Pos2 to) {
         return max(abs(to.x - x), abs(to.z - z));
+    }
+
+    public double euclidDistanceSq(Pos2 to) {
+        double dx = to.x - x;
+        double dz = to.z - z;
+        return dx * dx + dz * dz;
     }
 
     public int taxicabDistance(Pos2 to) {
