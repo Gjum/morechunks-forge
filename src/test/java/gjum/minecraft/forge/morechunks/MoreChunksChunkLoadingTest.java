@@ -1,6 +1,6 @@
 package gjum.minecraft.forge.morechunks;
 
-import gjum.minecraft.forge.morechunks.MockChunkServer.ConnCall;
+import gjum.minecraft.forge.morechunks.MockChunkServer.ChunkServerCall;
 import gjum.minecraft.forge.morechunks.MockMcGame.GameCall;
 import junit.framework.TestCase;
 
@@ -68,7 +68,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
         moreChunks.onReceiveGameChunk(chunk);
         assertTrue("should forward game chunk to chunk server",
                 chunkServer.containsCall(snap ->
-                        snap.call == ConnCall.SEND_CHUNK
+                        snap.call == ChunkServerCall.SEND_CHUNK
                                 && snap.args[0] == chunk));
     }
 
@@ -77,7 +77,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
         final Chunk chunk = new Chunk(new Pos2(2, 3), null);
         moreChunks.onReceiveGameChunk(chunk);
         assertTrue("should not forward game chunk when not connected to chunk server",
-                !chunkServer.containsCall(ConnCall.SEND_CHUNK));
+                !chunkServer.containsCall(ChunkServerCall.SEND_CHUNK));
     }
 
     public void testOnGameChunkUnloadFarButKeepCloseChunks() {
@@ -101,7 +101,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
 
     private boolean didRequestForChunkAt(Pos2 pos) {
         return chunkServer.containsCall(snap -> {
-            if (snap.call != ConnCall.REQUEST_CHUNKS) return false;
+            if (snap.call != ChunkServerCall.REQUEST_CHUNKS) return false;
             @SuppressWarnings("unchecked")
             List<Pos2> posList = (List<Pos2>) snap.args[0];
             return posList.contains(pos);
@@ -141,7 +141,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
         moreChunks.onReceiveGameChunk(new Chunk(new Pos2(0, 0), null));
 
         assertTrue("should not request extra chunks when not connected to chunk server",
-                !chunkServer.containsCall(ConnCall.REQUEST_CHUNKS));
+                !chunkServer.containsCall(ChunkServerCall.REQUEST_CHUNKS));
     }
 
     public void testUnloadsChunksOverCapOnGameChunkLoad() {

@@ -1,6 +1,6 @@
 package gjum.minecraft.forge.morechunks;
 
-import gjum.minecraft.forge.morechunks.MockChunkServer.ConnCall;
+import gjum.minecraft.forge.morechunks.MockChunkServer.ChunkServerCall;
 import junit.framework.TestCase;
 
 public class MoreChunksConnectionTest extends TestCase {
@@ -25,35 +25,42 @@ public class MoreChunksConnectionTest extends TestCase {
         chunkServer.connected = false;
         game.ingame = true;
         moreChunks.onGameConnected();
-        assertTrue(chunkServer.containsCall(ConnCall.CONNECT));
+        assertTrue(chunkServer.containsCall(ChunkServerCall.CONNECT));
     }
 
     public void testDisconnectsChunkServerOnLeaveGame() {
         chunkServer.connected = true;
+        game.ingame = true; // by the nature of Forge's disconnect event, game is still connected at that time
         moreChunks.onGameDisconnected();
-        assertEquals(ConnCall.DISCONNECT, chunkServer.getLastCall().call);
-        assertEquals("MoreChunks: Game ending", ((DisconnectReason) chunkServer.getLastCall().args[0]).description);
+        assertEquals("Should disconnect chunk server when leaving game", ChunkServerCall.DISCONNECT, chunkServer.getLastCall().call);
+        ExpectedDisconnect reason = new ExpectedDisconnect("MoreChunks: Game ending");
+        assertEquals(reason, chunkServer.getLastCall().args[0]);
+
+        chunkServer.connected = false;
+        moreChunks.onChunkServerDisconnected(reason);
+        assertTrue("Should not reconnect chunk server when leaving game",
+                !chunkServer.containsCall(ChunkServerCall.CONNECT));
     }
 
     public void testReconnectsOnChunkServerDisconnectWhenIngame() {
         chunkServer.connected = false;
         game.ingame = true;
         moreChunks.onChunkServerDisconnected(new DisconnectReason("Test"));
-        assertEquals(ConnCall.CONNECT, chunkServer.getLastCall().call);
+        assertEquals(ChunkServerCall.CONNECT, chunkServer.getLastCall().call);
     }
 
     public void testNoReconnectionOnChunkServerDisconnectWhenNotIngame() {
         chunkServer.connected = false;
         game.ingame = false;
         moreChunks.onChunkServerDisconnected(new DisconnectReason("Test"));
-        assertFalse(chunkServer.containsCall(ConnCall.CONNECT));
+        assertFalse(chunkServer.containsCall(ChunkServerCall.CONNECT));
     }
 
     public void testDisconnectsChunkServerOnConnectWhenNotIngame() {
         chunkServer.connected = true;
         game.ingame = false;
         moreChunks.onChunkServerConnected();
-        assertEquals(ConnCall.DISCONNECT, chunkServer.getLastCall().call);
+        assertEquals(ChunkServerCall.DISCONNECT, chunkServer.getLastCall().call);
         assertEquals("MoreChunks: No game running", ((DisconnectReason) chunkServer.getLastCall().args[0]).description);
     }
 
@@ -71,17 +78,17 @@ public class MoreChunksConnectionTest extends TestCase {
         env.nowMs = 0;
         moreChunks.onChunkServerDisconnected(new DisconnectReason("Test"));
         assertTrue("first reconnect attempt should happen instantly",
-                chunkServer.containsCall(ConnCall.CONNECT));
+                chunkServer.containsCall(ChunkServerCall.CONNECT));
 
         chunkServer.calls.clear();
         env.nowMs = 1;
         moreChunks.onTick();
         assertTrue("should not reconnect while waiting for timeout",
-                !chunkServer.containsCall(ConnCall.CONNECT));
+                !chunkServer.containsCall(ChunkServerCall.CONNECT));
 
         moreChunks.onChunkServerDisconnected(new DisconnectReason("Test"));
         assertTrue("second reconnect attempt should not happen instantly",
-                !chunkServer.containsCall(ConnCall.CONNECT));
+                !chunkServer.containsCall(ChunkServerCall.CONNECT));
 
         final long firstTimeout = 1000;
 
@@ -89,35 +96,35 @@ public class MoreChunksConnectionTest extends TestCase {
         env.nowMs = firstTimeout - 1;
         moreChunks.onTick();
         assertTrue("second reconnect attempt should not happen before timeout",
-                !chunkServer.containsCall(ConnCall.CONNECT));
+                !chunkServer.containsCall(ChunkServerCall.CONNECT));
 
         chunkServer.calls.clear();
         env.nowMs = firstTimeout;
         moreChunks.onTick();
         assertTrue("second reconnect attempt should happen after timeout",
-                chunkServer.containsCall(ConnCall.CONNECT));
+                chunkServer.containsCall(ChunkServerCall.CONNECT));
 
         final long secondTimeout = firstTimeout + 2 * firstTimeout;
         chunkServer.calls.clear();
         env.nowMs = secondTimeout - 1;
         moreChunks.onTick();
         assertTrue("third reconnect attempt should not happen before double timeout",
-                !chunkServer.containsCall(ConnCall.CONNECT));
+                !chunkServer.containsCall(ChunkServerCall.CONNECT));
 
         chunkServer.calls.clear();
         env.nowMs = secondTimeout;
         moreChunks.onTick();
         assertTrue("third reconnect attempt should happen after double timeout",
-                chunkServer.containsCall(ConnCall.CONNECT));
+                chunkServer.containsCall(ChunkServerCall.CONNECT));
 
         chunkServer.calls.clear();
         moreChunks.onChunkServerConnected();
         assertTrue("successful connection should not result in reconnect attempt",
-                !chunkServer.containsCall(ConnCall.CONNECT));
+                !chunkServer.containsCall(ChunkServerCall.CONNECT));
 
         moreChunks.onChunkServerDisconnected(new DisconnectReason("Test"));
         assertTrue("successful connection should reset reconnect timeout",
-                chunkServer.containsCall(ConnCall.CONNECT));
+                chunkServer.containsCall(ChunkServerCall.CONNECT));
 
         final long firstTimeoutPart2 = secondTimeout + firstTimeout;
 
@@ -125,13 +132,13 @@ public class MoreChunksConnectionTest extends TestCase {
         env.nowMs = firstTimeoutPart2 - 1;
         moreChunks.onTick();
         assertTrue("second reconnect attempt should not happen before first timeout (after a successful connection had been made)",
-                !chunkServer.containsCall(ConnCall.CONNECT));
+                !chunkServer.containsCall(ChunkServerCall.CONNECT));
 
         chunkServer.calls.clear();
         env.nowMs = firstTimeoutPart2;
         moreChunks.onTick();
         assertTrue("successful connection should reset reconnect interval",
-                chunkServer.containsCall(ConnCall.CONNECT));
+                chunkServer.containsCall(ChunkServerCall.CONNECT));
     }
 
     // TODO test when not enabled
