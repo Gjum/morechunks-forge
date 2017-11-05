@@ -23,6 +23,7 @@ public class GuiConfig extends GuiScreen {
     private TextField txtHostname;
     private TextField txtPort;
     private TextField txtServerRenderDistance;
+    private TextField txtChunkLoadsPerSecond;
     private TextField txtMaxNumChunksLoaded;
     private GuiButton btnClose;
 
@@ -71,11 +72,15 @@ public class GuiConfig extends GuiScreen {
 
         textFieldList.add(txtServerRenderDistance = new TextField(nextId(), fontRendererObj,
                 leftEdge, topEdge + ROW_HEIGHT * currentRow,
-                HALF_WIDTH, DEFAULT_HEIGHT,
-                "Server render distance", config.getServerRenderDistance()));
+                PART_WIDTH, DEFAULT_HEIGHT,
+                "Server view distance", config.getServerRenderDistance()));
+        textFieldList.add(txtChunkLoadsPerSecond = new TextField(nextId(), fontRendererObj,
+                leftEdge + PART_WIDTH, topEdge + ROW_HEIGHT * currentRow,
+                PART_WIDTH, DEFAULT_HEIGHT,
+                "Chunk loading speed", config.getChunkLoadsPerSecond()));
         textFieldList.add(txtMaxNumChunksLoaded = new TextField(nextId(), fontRendererObj,
-                leftEdge + HALF_WIDTH, topEdge + ROW_HEIGHT * currentRow,
-                HALF_WIDTH, DEFAULT_HEIGHT,
+                leftEdge + 2 * PART_WIDTH, topEdge + ROW_HEIGHT * currentRow,
+                PART_WIDTH, DEFAULT_HEIGHT,
                 "Max. Chunks loaded", config.getMaxNumChunksLoaded()));
         currentRow++;
 
@@ -110,6 +115,9 @@ public class GuiConfig extends GuiScreen {
         try {
             Integer.parseUnsignedInt(txtPort.getText());
             Integer.parseUnsignedInt(txtServerRenderDistance.getText());
+            if (!txtChunkLoadsPerSecond.getText().isEmpty()) {
+                Integer.parseUnsignedInt(txtChunkLoadsPerSecond.getText());
+            }
             if (!txtMaxNumChunksLoaded.getText().isEmpty()) {
                 Integer.parseUnsignedInt(txtMaxNumChunksLoaded.getText());
             }
@@ -157,14 +165,17 @@ public class GuiConfig extends GuiScreen {
     private void saveAndLeaveOrStay() {
         config.setHostname(txtHostname.getText().trim());
         config.setPort(Integer.parseUnsignedInt(txtPort.getText()));
-        if (txtMaxNumChunksLoaded.getText().isEmpty()) {
-            config.setMaxNumChunksLoaded(9999);
+        config.setServerRenderDistance(Integer.parseUnsignedInt(txtServerRenderDistance.getText()));
+
+        if (txtChunkLoadsPerSecond.getText().isEmpty()) {
+            config.setChunkLoadsPerSecond(999); // "unlimited"
         } else {
-            config.setMaxNumChunksLoaded(Integer.parseUnsignedInt(
-                    txtMaxNumChunksLoaded.getText()));
+            config.setChunkLoadsPerSecond(Integer.parseUnsignedInt(
+                    txtChunkLoadsPerSecond.getText()));
         }
+
         if (txtMaxNumChunksLoaded.getText().isEmpty()) {
-            config.setMaxNumChunksLoaded(9999);
+            config.setMaxNumChunksLoaded(999); // "unlimited"
         } else {
             config.setMaxNumChunksLoaded(Integer.parseUnsignedInt(
                     txtMaxNumChunksLoaded.getText()));

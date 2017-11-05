@@ -10,6 +10,8 @@ public interface IConfig {
 
     boolean canPublishChunk(Pos2 chunkPos);
 
+    int getChunkLoadsPerSecond();
+
     boolean getEnabled();
 
     int getMaxNumChunksLoaded();
@@ -25,6 +27,8 @@ public interface IConfig {
     void save() throws IOException;
 
     void save(File configFile) throws IOException;
+
+    void setChunkLoadsPerSecond(int chunksPerSec);
 
     void setEnabled(boolean enabled);
 

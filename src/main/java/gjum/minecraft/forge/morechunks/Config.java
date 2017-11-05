@@ -11,6 +11,8 @@ import java.io.IOException;
 
 public class Config implements IConfig {
     @Expose()
+    private int chunkLoadsPerSecond;
+    @Expose()
     private boolean enabled;
     @Expose()
     private String hostname;
@@ -31,6 +33,7 @@ public class Config implements IConfig {
     }
 
     private void loadDefaults() {
+        chunkLoadsPerSecond = 20;
         enabled = true;
         hostname = "gjum.isteinvids.co.uk";
         maxNumChunksLoaded = 16 * 16;
@@ -58,6 +61,12 @@ public class Config implements IConfig {
         return true;
     }
 
+    @Override
+    public int getChunkLoadsPerSecond() {
+        return chunkLoadsPerSecond;
+    }
+
+    // TODO allow disabling the whole mod
     @Override
     public boolean getEnabled() {
         return enabled;
@@ -104,6 +113,11 @@ public class Config implements IConfig {
         FileOutputStream fos = new FileOutputStream(configFile);
         fos.write(json.getBytes());
         fos.close();
+    }
+
+    @Override
+    public void setChunkLoadsPerSecond(int chunksPerSec) {
+        this.chunkLoadsPerSecond = chunksPerSec;
     }
 
     @Override
