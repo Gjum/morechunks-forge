@@ -24,4 +24,6 @@ public interface IChunkServer {
      * Send the chunk to the chunk server, to share it with other players.
      */
     void sendChunk(Chunk chunk);
+
+    void sendStringMessage(String message);
 }

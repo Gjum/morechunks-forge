@@ -45,14 +45,23 @@ public class MoreChunks implements IMoreChunks {
 
     @Override
     public void onGameConnected() {
+        env.log(Level.DEBUG, "Connected to game");
         retryConnectChunkServer();
     }
 
     @Override
     public void onGameDisconnected() {
+        env.log(Level.DEBUG, "Game disconnected");
         if (chunkServer.isConnected()) {
             chunkServer.disconnect(new ExpectedDisconnect("MoreChunks: Game ending"));
         }
+    }
+
+    @Override
+    public void onPlayerChangedDimension(int toDim) {
+        env.log(Level.DEBUG, "Player moved to dimension %s", toDim);
+        // TODO test
+        chunkServer.sendStringMessage("game.dimension=" + toDim);
     }
 
     @Override

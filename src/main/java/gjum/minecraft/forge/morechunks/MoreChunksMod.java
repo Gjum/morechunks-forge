@@ -13,6 +13,7 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 import org.apache.logging.log4j.Level;
@@ -109,9 +110,13 @@ public class MoreChunksMod {
 
     @SubscribeEvent
     public void onGameDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
-        env.log(Level.DEBUG, "Game disconnected");
         moreChunks.onGameDisconnected();
         moreChunksPacketHandler = null;
+    }
+
+    @SubscribeEvent
+    public void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
+        moreChunks.onPlayerChangedDimension(event.toDim);
     }
 
     @SubscribeEvent

@@ -77,15 +77,18 @@ public class ChunkServer implements IChunkServer {
                 return;
             }
 
-            sendStringMsg("mod.version " + MoreChunksMod.VERSION);
+            sendStringMessage("mod.version=" + MoreChunksMod.VERSION);
 
-            NetHandlerPlayClient mcConn = Minecraft.getMinecraft().getConnection();
+            Minecraft mc = Minecraft.getMinecraft();
+            NetHandlerPlayClient mcConn = mc.getConnection();
             if (mcConn == null) {
                 env.log(Level.ERROR, "mcConn == null");
             } else {
                 SocketAddress mcServerAddress = mcConn.getNetworkManager().channel().remoteAddress();
-                sendStringMsg("game.address " + mcServerAddress);
+                sendStringMessage("game.address=" + mcServerAddress);
             }
+
+            sendStringMessage("game.dimension=" + mc.player.dimension);
 
             moreChunks.onChunkServerConnected();
         });
@@ -162,7 +165,8 @@ public class ChunkServer implements IChunkServer {
      * - messageType (byte): 1
      * - message (bytes): encoded message string
      */
-    public void sendStringMsg(String message) {
+    @Override
+    public void sendStringMessage(String message) {
         if (!isConnected()) {
             env.log(Level.ERROR, "Trying to send string message while disconnected: \"%s\"", message);
             return;

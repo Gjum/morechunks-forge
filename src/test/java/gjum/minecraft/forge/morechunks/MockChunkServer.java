@@ -5,7 +5,7 @@ import java.util.Collection;
 public class MockChunkServer extends CallTracker<MockChunkServer.ChunkServerCall> implements IChunkServer {
     boolean connected = false;
 
-    enum ChunkServerCall {IS_CONNECTED, CONNECT, DISCONNECT, REQUEST_CHUNKS, SEND_CHUNK}
+    enum ChunkServerCall {IS_CONNECTED, CONNECT, DISCONNECT, REQUEST_CHUNKS, SEND_CHUNK, SEND_STRING_MSG}
 
     @Override
     public boolean isConnected() {
@@ -31,5 +31,10 @@ public class MockChunkServer extends CallTracker<MockChunkServer.ChunkServerCall
     @Override
     public void sendChunk(Chunk chunk) {
         trackCall(ChunkServerCall.SEND_CHUNK, chunk);
+    }
+
+    @Override
+    public void sendStringMessage(String message) {
+        trackCall(ChunkServerCall.SEND_STRING_MSG, message);
     }
 }
