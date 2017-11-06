@@ -25,7 +25,6 @@ public class Config implements IConfig {
 
     private static final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 
-    @Expose(deserialize = false, serialize = false)
     private File configFile;
 
     public Config() {
@@ -39,6 +38,15 @@ public class Config implements IConfig {
         maxNumChunksLoaded = 16 * 16;
         port = 12312;
         serverRenderDistance = 4;
+    }
+
+    private void copyFrom(Config config) {
+        setChunkLoadsPerSecond(config.getChunkLoadsPerSecond());
+        setEnabled(config.getEnabled());
+        setHostname(config.getHostname());
+        setMaxNumChunksLoaded(config.getMaxNumChunksLoaded());
+        setPort(config.getPort());
+        setServerRenderDistance(config.getServerRenderDistance());
     }
 
     // TODO cache blacklist using bitwise filter thing
@@ -97,7 +105,7 @@ public class Config implements IConfig {
         this.configFile = configFile;
 
         FileReader reader = new FileReader(configFile);
-        gson.fromJson(reader, this.getClass());
+        copyFrom(gson.fromJson(reader, this.getClass()));
         reader.close();
     }
 
