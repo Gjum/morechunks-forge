@@ -44,8 +44,7 @@ public class MoreChunksMod {
 
     public final IEnv env;
     public final IConfig config;
-
-    private final MoreChunks moreChunks;
+    public final MoreChunks moreChunks;
 
     private ChannelHandler moreChunksPacketHandler;
 

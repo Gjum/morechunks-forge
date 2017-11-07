@@ -82,7 +82,7 @@ public class ChunkServer implements IChunkServer {
             }
 
             sendStringMessage("mod.version=" + MoreChunksMod.VERSION);
-            sendStringMessage("mod.chunksPerSecond=" + conf.getChunkLoadsPerSecond());
+            sendStringMessage(INFO_SET_CHUNKS_PER_SEC + conf.getChunkLoadsPerSecond());
 
             Minecraft mc = Minecraft.getMinecraft();
             NetHandlerPlayClient mcConn = mc.getConnection();

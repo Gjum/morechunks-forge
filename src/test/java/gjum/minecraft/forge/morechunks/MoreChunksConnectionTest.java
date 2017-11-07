@@ -3,8 +3,9 @@ package gjum.minecraft.forge.morechunks;
 import gjum.minecraft.forge.morechunks.MockChunkServer.ChunkServerCall;
 import junit.framework.TestCase;
 
-public class MoreChunksConnectionTest extends TestCase {
+import static gjum.minecraft.forge.morechunks.IChunkServer.INFO_SET_CHUNKS_PER_SEC;
 
+public class MoreChunksConnectionTest extends TestCase {
     private MoreChunks moreChunks;
     private MockMcGame game;
     private MockChunkServer chunkServer;
@@ -140,6 +141,26 @@ public class MoreChunksConnectionTest extends TestCase {
         moreChunks.onTick();
         assertTrue("successful connection should reset reconnect interval",
                 chunkServer.containsCall(ChunkServerCall.CONNECT));
+    }
+
+    public void testSendsChunkSpeedWhenChangedInConfig() {
+        Config newConfig = new Config();
+        newConfig.setChunkLoadsPerSecond(42);
+
+        moreChunks.onConfigChanged(newConfig);
+
+        assertEquals("Should send new chunk speed to server when it changed in the config",
+                INFO_SET_CHUNKS_PER_SEC + "42", chunkServer.getLastCall().args[0]);
+    }
+
+    public void testSendsNoChunkSpeedWhenNotChangedInConfig() {
+        Config newConfig = new Config();
+        newConfig.setChunkLoadsPerSecond(conf.getChunkLoadsPerSecond());
+
+        moreChunks.onConfigChanged(newConfig);
+
+        assertTrue("Should not send chunk speed to server when it didn't change",
+                !chunkServer.containsCall(ChunkServerCall.SEND_STRING_MSG));
     }
 
     // TODO test when not enabled

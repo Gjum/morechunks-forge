@@ -3,6 +3,8 @@ package gjum.minecraft.forge.morechunks;
 import java.util.Collection;
 
 public interface IChunkServer {
+    String INFO_SET_CHUNKS_PER_SEC = "mod.chunksPerSecond=";
+
     /**
      * (Re-)Connect to the chunk server and send initial information
      * about the client, such as world name and chunk sending speed.

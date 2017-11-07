@@ -2,6 +2,7 @@ package gjum.minecraft.forge.morechunks.gui;
 
 import gjum.minecraft.forge.morechunks.IConfig;
 import gjum.minecraft.forge.morechunks.IEnv;
+import gjum.minecraft.forge.morechunks.MoreChunks;
 import gjum.minecraft.forge.morechunks.MoreChunksMod;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiLabel;
@@ -18,6 +19,7 @@ public class GuiConfig extends GuiScreen {
     private final GuiScreen parentScreen;
     private final IConfig config;
     private final IEnv env;
+    private final MoreChunks moreChunks;
 
     private TextField txtAddress;
     private TextField txtChunkLoadsPerSecond;
@@ -38,6 +40,7 @@ public class GuiConfig extends GuiScreen {
         this.parentScreen = parentScreen;
         config = MoreChunksMod.instance.config;
         env = MoreChunksMod.instance.env;
+        moreChunks = MoreChunksMod.instance.moreChunks;
     }
 
     @Override
@@ -176,6 +179,7 @@ public class GuiConfig extends GuiScreen {
 
         try {
             config.save();
+            moreChunks.onConfigChanged(config);
         } catch (IOException e) {
             e.printStackTrace();
             env.log(Level.WARN, "Could not save settings: %s", e.getMessage());

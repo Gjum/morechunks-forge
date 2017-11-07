@@ -5,20 +5,22 @@ import org.apache.logging.log4j.Level;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static gjum.minecraft.forge.morechunks.IChunkServer.INFO_SET_CHUNKS_PER_SEC;
+
 public class MoreChunks implements IMoreChunks {
     private final IMcGame game;
-    private final IConfig conf;
     private final IEnv env;
 
     private IChunkServer chunkServer;
+    private IConfig config;
     private Pos2 lastRequestPlayerPos = new Pos2(Integer.MAX_VALUE, Integer.MAX_VALUE);
 
     private long nextReconnectTime = 0;
     private long nextRetryInterval = 1000;
 
-    public MoreChunks(IMcGame game, IConfig conf, IEnv env) {
+    public MoreChunks(IMcGame game, IConfig config, IEnv env) {
         this.game = game;
-        this.conf = conf;
+        this.config = config;
         this.env = env;
     }
 
@@ -41,6 +43,15 @@ public class MoreChunks implements IMoreChunks {
         if (reason instanceof ExpectedDisconnect) return;
         env.log(Level.WARN, "ChunkServer disconnected: %s", reason);
         retryConnectChunkServer();
+    }
+
+    @Override
+    public void onConfigChanged(IConfig newConfig) {
+        if (config.getChunkLoadsPerSecond() != newConfig.getChunkLoadsPerSecond()) {
+            chunkServer.sendStringMessage(INFO_SET_CHUNKS_PER_SEC + newConfig.getChunkLoadsPerSecond());
+        }
+
+        config = newConfig;
     }
 
     @Override
@@ -78,7 +89,7 @@ public class MoreChunks implements IMoreChunks {
             return;
         }
 
-        if (chunkDistance <= conf.getServerRenderDistance()) {
+        if (chunkDistance <= config.getServerRenderDistance()) {
             env.log(Level.DEBUG, "Discarding too close extra chunk at %s", chunk.pos);
             return;
         }
@@ -117,7 +128,7 @@ public class MoreChunks implements IMoreChunks {
         // apply limit
         // TODO sort loadable chunks by interest instead (e.g. within player's walking direction)
         loadableChunks = sortByPlayerDistance(loadableChunks);
-        final int chunkLoadLimit = conf.getMaxNumChunksLoaded() - game.getLoadedChunks().size();
+        final int chunkLoadLimit = config.getMaxNumChunksLoaded() - game.getLoadedChunks().size();
         if (chunkLoadLimit <= 0) return; // TODO test
         loadableChunks = loadableChunks.stream().limit(chunkLoadLimit).collect(Collectors.toList());
 
@@ -132,7 +143,7 @@ public class MoreChunks implements IMoreChunks {
      */
     private List<Pos2> getLoadableChunks() {
         final int rdClient = game.getRenderDistance();
-        final int rdServer = conf.getServerRenderDistance();
+        final int rdServer = config.getServerRenderDistance();
         final Collection<Pos2> loadedChunks = game.getLoadedChunks();
         final Pos2 player = game.getPlayerChunkPos();
 
@@ -201,11 +212,11 @@ public class MoreChunks implements IMoreChunks {
      */
     private void unloadChunksOverCap() {
         // TODO do not unload extra chunks over cap when only recently loaded, this could prevent flickering
-        if (game.getLoadedChunks().size() > conf.getMaxNumChunksLoaded()) {
+        if (game.getLoadedChunks().size() > config.getMaxNumChunksLoaded()) {
             PriorityQueue<Pos2> closeChunks = new PriorityQueue<>(Comparator.comparingDouble(game.getPlayerChunkPos()::taxicabDistance));
             closeChunks.addAll(game.getLoadedChunks());
             closeChunks.stream()
-                    .skip(conf.getMaxNumChunksLoaded())
+                    .skip(config.getMaxNumChunksLoaded())
                     .forEach(game::unloadChunk);
         }
     }
