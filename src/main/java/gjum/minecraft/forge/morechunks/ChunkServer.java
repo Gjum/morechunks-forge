@@ -101,9 +101,11 @@ public class ChunkServer implements IChunkServer {
 
     @Override
     public void disconnect(DisconnectReason reason) {
-        if (!isConnected()) return;
-        channel.close();
-        channel.disconnect();
+        if (isConnected()) {
+            channel.close();
+            channel.disconnect();
+        }
+
         moreChunks.onChunkServerDisconnected(reason);
     }
 

@@ -61,7 +61,8 @@ public class MoreChunksConnectionTest extends TestCase {
         game.ingame = false;
         moreChunks.onChunkServerConnected();
         assertEquals(ChunkServerCall.DISCONNECT, chunkServer.getLastCall().call);
-        assertEquals("MoreChunks: No game running", ((DisconnectReason) chunkServer.getLastCall().args[0]).description);
+        ExpectedDisconnect reason = new ExpectedDisconnect("MoreChunks: No game running");
+        assertEquals(reason, chunkServer.getLastCall().args[0]);
     }
 
     public void testNoReconnectOnConnectChunkServerWhenNotIngame() {
