@@ -6,21 +6,21 @@ import net.minecraft.client.gui.GuiTextField;
 import java.awt.*;
 
 public class TextField extends GuiTextField {
-    private static final int xOffset = 4;
+    private static final int MARGIN = 2;
 
     private final String label;
     private final FontRenderer fontRenderer;
 
-    public TextField(int id, FontRenderer fontRenderer, int x, int y, int width, int height, String label, String initialValue) {
-        super(id, fontRenderer, x, y + fontRenderer.FONT_HEIGHT, width, height);
+    public TextField(int id, FontRenderer fontRenderer, int x, int y, int width, String label, String initialValue) {
+        super(id, fontRenderer, x + MARGIN, y + MARGIN + fontRenderer.FONT_HEIGHT, width - 2 * MARGIN, 18 - 2 * MARGIN);
 
         this.fontRenderer = fontRenderer;
         this.label = label;
         setText(initialValue);
     }
 
-    public TextField(int id, FontRenderer fontRenderer, int x, int y, int width, int height, String label, int initialValue) {
-        super(id, fontRenderer, x, y + fontRenderer.FONT_HEIGHT, width, height);
+    public TextField(int id, FontRenderer fontRenderer, int x, int y, int width, String label, int initialValue) {
+        super(id, fontRenderer, x + MARGIN, y + MARGIN + fontRenderer.FONT_HEIGHT, width - 2 * MARGIN, 18 - 2 * MARGIN);
 
         this.fontRenderer = fontRenderer;
         this.label = label;
@@ -46,14 +46,14 @@ public class TextField extends GuiTextField {
         int labelWidth = fontRenderer.getStringWidth(label);
 
         drawRect(
-                xPosition + xOffset,
-                yPosition - fontRenderer.FONT_HEIGHT,
-                xPosition + xOffset + labelWidth,
+                xPosition - 1,
+                yPosition - fontRenderer.FONT_HEIGHT - 1,
+                xPosition + labelWidth,
                 yPosition,
-                Color.BLACK.getRGB());
+                Color.LIGHT_GRAY.getRGB());
 
         fontRenderer.drawString(label,
-                xPosition + xOffset, yPosition - fontRenderer.FONT_HEIGHT,
-                Color.WHITE.getRGB());
+                xPosition, yPosition - fontRenderer.FONT_HEIGHT,
+                Color.BLACK.getRGB());
     }
 }

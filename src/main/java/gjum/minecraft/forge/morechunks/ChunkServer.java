@@ -30,12 +30,12 @@ public class ChunkServer implements IChunkServer {
 
     private Channel channel;
 
-    private final byte RECV_CHUNK_DATA = 0;
-    private final byte RECV_STATUS_MSG = 1;
+    private static final byte RECV_CHUNK_DATA = 0;
+    private static final byte RECV_STATUS_MSG = 1;
 
-    private final byte SEND_CHUNK_DATA = 0;
-    private final byte SEND_STRING_MSG = 1;
-    private final byte SEND_CHUNKS_REQUEST = 2;
+    private static final byte SEND_CHUNK_DATA = 0;
+    private static final byte SEND_STRING_MSG = 1;
+    private static final byte SEND_CHUNKS_REQUEST = 2;
 
     public ChunkServer(IConfig conf, IEnv env, IMoreChunks moreChunks) {
         this.moreChunks = moreChunks;
@@ -50,7 +50,11 @@ public class ChunkServer implements IChunkServer {
             return;
         }
 
-        env.log(Level.INFO, "Connecting to %s:%d", conf.getHostname(), conf.getPort());
+        String[] hostPort = conf.getChunkServerAddress().split(":");
+        String host = hostPort[0];
+        int port = 12312;
+        if (hostPort.length > 1) port = Integer.parseUnsignedInt(hostPort[1]);
+        env.log(Level.INFO, "Connecting to %s:%d", host, port);
 
         Bootstrap bootstrap = new Bootstrap()
                 .group(getLoopGroup().getValue())
@@ -65,7 +69,7 @@ public class ChunkServer implements IChunkServer {
                                 .addLast("packet_handler", new ReceiverHandler());
                     }
                 });
-        ChannelFuture connectedF = bootstrap.connect(conf.getHostname(), conf.getPort());
+        ChannelFuture connectedF = bootstrap.connect(host, port);
 
         channel = connectedF.channel();
         channel.closeFuture().addListener(closeF ->

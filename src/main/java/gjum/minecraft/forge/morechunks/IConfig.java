@@ -12,15 +12,13 @@ public interface IConfig {
 
     int getChunkLoadsPerSecond();
 
+    String getChunkServerAddress();
+
     boolean getEnabled();
 
     int getMaxNumChunksLoaded();
 
-    int getPort();
-
     int getServerRenderDistance();
-
-    String getHostname();
 
     void load(File configFile) throws IOException;
 
@@ -30,13 +28,11 @@ public interface IConfig {
 
     void setChunkLoadsPerSecond(int chunksPerSec);
 
+    void setChunkServerAddress(String address);
+
     void setEnabled(boolean enabled);
 
-    void setHostname(String hostname);
-
     void setMaxNumChunksLoaded(int maxNumChunksLoaded);
-
-    void setPort(int port);
 
     void setServerRenderDistance(int serverRenderDistance);
 }

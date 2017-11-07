@@ -19,22 +19,20 @@ public class GuiConfig extends GuiScreen {
     private final IConfig config;
     private final IEnv env;
 
-    private GuiLabel labelTitle;
-    private TextField txtHostname;
-    private TextField txtPort;
-    private TextField txtServerRenderDistance;
+    private TextField txtAddress;
     private TextField txtChunkLoadsPerSecond;
     private TextField txtMaxNumChunksLoaded;
+    private TextField txtServerRenderDistance;
     private GuiButton btnClose;
 
     private final ArrayList<GuiTextField> textFieldList = new ArrayList<>();
     private int idCounter = 0;
 
-    private final int DEFAULT_HEIGHT = 20;
-    private final int ROW_HEIGHT = DEFAULT_HEIGHT + 15;
-    private final int PART_WIDTH = 100;
-    private final int FULL_WIDTH = 3 * PART_WIDTH;
-    private final int HALF_WIDTH = FULL_WIDTH / 2;
+    private static final int DEFAULT_HEIGHT = 18;
+    private static final int ROW_HEIGHT = DEFAULT_HEIGHT * 2;
+    private static final int FULL_WIDTH = 240;
+    private static final int HALF_WIDTH = FULL_WIDTH / 2;
+    private static final int THIRD_WIDTH = FULL_WIDTH / 3;
 
     public GuiConfig(GuiScreen parentScreen) {
         this.parentScreen = parentScreen;
@@ -54,46 +52,43 @@ public class GuiConfig extends GuiScreen {
         final int leftEdge = (width - FULL_WIDTH) / 2;
         int currentRow = 0;
 
-        labelList.add(labelTitle = new GuiLabel(fontRendererObj, nextId(),
+        GuiLabel title = new GuiLabel(fontRendererObj, nextId(),
                 leftEdge, topEdge + currentRow++,
                 FULL_WIDTH, DEFAULT_HEIGHT,
-                Color.WHITE.getRGB()));
-        labelTitle.setCentered();
+                Color.WHITE.getRGB());
+        labelList.add(title);
+        title.setCentered();
+        title.addLine("MoreChunks Settings");
 
-        textFieldList.add(txtHostname = new TextField(nextId(), fontRendererObj,
+        textFieldList.add(txtAddress = new TextField(nextId(), fontRendererObj,
                 leftEdge, topEdge + ROW_HEIGHT * currentRow,
-                FULL_WIDTH - PART_WIDTH, DEFAULT_HEIGHT,
-                "Hostname", config.getHostname()));
-        textFieldList.add(txtPort = new TextField(nextId(), fontRendererObj,
-                leftEdge + FULL_WIDTH - PART_WIDTH, topEdge + ROW_HEIGHT * currentRow,
-                PART_WIDTH, DEFAULT_HEIGHT,
-                "Port", config.getPort()));
+                2 * THIRD_WIDTH,
+                "Chunk server address", config.getChunkServerAddress()));
+        textFieldList.add(txtChunkLoadsPerSecond = new TextField(nextId(), fontRendererObj,
+                leftEdge + 2 * THIRD_WIDTH, topEdge + ROW_HEIGHT * currentRow,
+                THIRD_WIDTH,
+                "Loading speed", config.getChunkLoadsPerSecond()));
         currentRow++;
 
         textFieldList.add(txtServerRenderDistance = new TextField(nextId(), fontRendererObj,
                 leftEdge, topEdge + ROW_HEIGHT * currentRow,
-                PART_WIDTH, DEFAULT_HEIGHT,
+                HALF_WIDTH,
                 "Server view distance", config.getServerRenderDistance()));
-        textFieldList.add(txtChunkLoadsPerSecond = new TextField(nextId(), fontRendererObj,
-                leftEdge + PART_WIDTH, topEdge + ROW_HEIGHT * currentRow,
-                PART_WIDTH, DEFAULT_HEIGHT,
-                "Chunk loading speed", config.getChunkLoadsPerSecond()));
         textFieldList.add(txtMaxNumChunksLoaded = new TextField(nextId(), fontRendererObj,
-                leftEdge + 2 * PART_WIDTH, topEdge + ROW_HEIGHT * currentRow,
-                PART_WIDTH, DEFAULT_HEIGHT,
+                leftEdge + HALF_WIDTH, topEdge + ROW_HEIGHT * currentRow,
+                HALF_WIDTH,
                 "Max. Chunks loaded", config.getMaxNumChunksLoaded()));
         currentRow++;
 
         buttonList.add(btnClose = new GuiButton(nextId(),
-                leftEdge + PART_WIDTH, topEdge + ROW_HEIGHT * currentRow++,
-                PART_WIDTH, DEFAULT_HEIGHT,
+                leftEdge + HALF_WIDTH / 2, topEdge + ROW_HEIGHT * currentRow,
+                HALF_WIDTH, 20,
                 "Save and close"));
+        currentRow++;
 
         if (currentRow != rowsNum) {
             env.log(Level.WARN, "Mismatch in GUI height: expected %s, is %s", rowsNum, currentRow);
         }
-
-        labelTitle.addLine("MoreChunks Settings");
     }
 
     @Override
@@ -111,9 +106,8 @@ public class GuiConfig extends GuiScreen {
     public void updateScreen() {
         boolean valid = true;
 
-        if (txtHostname.getText().isEmpty()) valid = false;
+        if (txtAddress.getText().isEmpty()) valid = false;
         try {
-            Integer.parseUnsignedInt(txtPort.getText());
             Integer.parseUnsignedInt(txtServerRenderDistance.getText());
             if (!txtChunkLoadsPerSecond.getText().isEmpty()) {
                 Integer.parseUnsignedInt(txtChunkLoadsPerSecond.getText());
@@ -133,7 +127,7 @@ public class GuiConfig extends GuiScreen {
         if (!button.enabled) return;
 
         if (button.id == btnClose.id) {
-            saveAndLeaveOrStay();
+            saveAndLeave();
         }
     }
 
@@ -145,7 +139,7 @@ public class GuiConfig extends GuiScreen {
             }
         }
         if (keyCode == Keyboard.KEY_ESCAPE) {
-            saveAndLeaveOrStay();
+            saveAndLeave();
         }
     }
 
@@ -162,9 +156,8 @@ public class GuiConfig extends GuiScreen {
         Keyboard.enableRepeatEvents(false);
     }
 
-    private void saveAndLeaveOrStay() {
-        config.setHostname(txtHostname.getText().trim());
-        config.setPort(Integer.parseUnsignedInt(txtPort.getText()));
+    private void saveAndLeave() {
+        config.setChunkServerAddress(txtAddress.getText().trim());
         config.setServerRenderDistance(Integer.parseUnsignedInt(txtServerRenderDistance.getText()));
 
         if (txtChunkLoadsPerSecond.getText().isEmpty()) {

@@ -13,13 +13,11 @@ public class Config implements IConfig {
     @Expose()
     private int chunkLoadsPerSecond;
     @Expose()
+    private String chunkServerAddress;
+    @Expose()
     private boolean enabled;
     @Expose()
-    private String hostname;
-    @Expose()
     private int maxNumChunksLoaded;
-    @Expose()
-    private int port;
     @Expose()
     private int serverRenderDistance;
 
@@ -33,19 +31,17 @@ public class Config implements IConfig {
 
     private void loadDefaults() {
         chunkLoadsPerSecond = 20;
+        chunkServerAddress = "gjum.isteinvids.co.uk:12312";
         enabled = true;
-        hostname = "gjum.isteinvids.co.uk";
         maxNumChunksLoaded = 16 * 16;
-        port = 12312;
         serverRenderDistance = 4;
     }
 
-    private void copyFrom(Config config) {
+    private void copyFrom(IConfig config) {
         setChunkLoadsPerSecond(config.getChunkLoadsPerSecond());
+        setChunkServerAddress(config.getChunkServerAddress());
         setEnabled(config.getEnabled());
-        setHostname(config.getHostname());
         setMaxNumChunksLoaded(config.getMaxNumChunksLoaded());
-        setPort(config.getPort());
         setServerRenderDistance(config.getServerRenderDistance());
     }
 
@@ -74,6 +70,11 @@ public class Config implements IConfig {
         return chunkLoadsPerSecond;
     }
 
+    @Override
+    public String getChunkServerAddress() {
+        return chunkServerAddress;
+    }
+
     // TODO allow disabling the whole mod
     @Override
     public boolean getEnabled() {
@@ -81,18 +82,8 @@ public class Config implements IConfig {
     }
 
     @Override
-    public String getHostname() {
-        return hostname;
-    }
-
-    @Override
     public int getMaxNumChunksLoaded() {
         return maxNumChunksLoaded;
-    }
-
-    @Override
-    public int getPort() {
-        return port;
     }
 
     @Override
@@ -129,23 +120,18 @@ public class Config implements IConfig {
     }
 
     @Override
+    public void setChunkServerAddress(String address) {
+        chunkServerAddress = address;
+    }
+
+    @Override
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
 
     @Override
-    public void setHostname(String hostname) {
-        this.hostname = hostname;
-    }
-
-    @Override
     public void setMaxNumChunksLoaded(int maxNumChunksLoaded) {
         this.maxNumChunksLoaded = maxNumChunksLoaded;
-    }
-
-    @Override
-    public void setPort(int port) {
-        this.port = port;
     }
 
     @Override
