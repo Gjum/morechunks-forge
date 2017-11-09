@@ -42,16 +42,16 @@ public class MoreChunksMod {
     public final KeyBinding openGuiKey = new KeyBinding(MOD_ID + ".key.openGui", Keyboard.KEY_NONE, MOD_NAME);
     public final KeyBinding toggleEnabledKey = new KeyBinding(MOD_ID + ".key.toggleEnabled", Keyboard.KEY_NONE, MOD_NAME);
 
-    public final IEnv env;
-    public final IConfig config;
+    public final IEnv env = new Env();
+    public final IConfig config = new Config();
     public final MoreChunks moreChunks;
+
+    private final McGame game = new McGame(env);
 
     private ChannelHandler moreChunksPacketHandler;
 
     public MoreChunksMod() {
-        env = new Env();
-        config = new Config();
-        moreChunks = new MoreChunks(new McGame(env), config, env);
+        moreChunks = new MoreChunks(game, config, env);
         moreChunks.setChunkServer(new ChunkServer(config, env, moreChunks));
     }
 

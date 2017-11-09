@@ -179,7 +179,7 @@ public class MoreChunks implements IMoreChunks {
      */
     private List<Pos2> sortByPlayerDistance(List<Pos2> chunks) {
         final Pos2 player = game.getPlayerChunkPos();
-        chunks.sort(Comparator.comparingDouble(player::taxicabDistance));
+        chunks.sort(Comparator.comparingDouble(player::euclidDistanceSq));
         return chunks;
     }
 
