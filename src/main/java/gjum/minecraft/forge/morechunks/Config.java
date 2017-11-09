@@ -30,10 +30,10 @@ public class Config implements IConfig {
     }
 
     private void loadDefaults() {
-        chunkLoadsPerSecond = 20;
+        chunkLoadsPerSecond = 40;
         chunkServerAddress = "gjum.isteinvids.co.uk:12312";
         enabled = true;
-        maxNumChunksLoaded = 16 * 16;
+        maxNumChunksLoaded = 512;
         serverRenderDistance = 4;
     }
 
