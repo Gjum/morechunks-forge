@@ -94,9 +94,11 @@ public class MoreChunks implements IMoreChunks {
             return;
         }
 
-        game.loadChunk(chunk);
-
-        game.runOnMcThread(this::unloadChunksOverCap);
+        game.runOnMcThread(() -> {
+            game.unloadChunk(chunk.pos);
+            game.loadChunk(chunk);
+            unloadChunksOverCap();
+        });
     }
 
     @Override
@@ -105,6 +107,8 @@ public class MoreChunks implements IMoreChunks {
             chunkServer.sendChunk(chunk);
         }
         game.runOnMcThread(() -> {
+            game.unloadChunk(chunk.pos);
+            game.loadChunk(chunk);
             unloadChunksOutsideRenderDistance();
             requestExtraChunks();
             unloadChunksOverCap();

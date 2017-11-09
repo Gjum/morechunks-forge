@@ -23,7 +23,7 @@ public class McGame implements IMcGame {
     @Override
     public List<Pos2> getLoadedChunks() {
         if (!mc.isCallingFromMinecraftThread()) {
-            // try wrapping this getLoadedChunks() call in runOnMcThread() in your code
+            // try wrapping this call in runOnMcThread() in your code
             throw new Error("Calling getLoadedChunks from non-mc-thread");
         }
         ArrayList<Pos2> chunkPositions = new ArrayList<>();
@@ -50,16 +50,18 @@ public class McGame implements IMcGame {
 
     @Override
     public void loadChunk(Chunk chunk) {
+        if (!mc.isCallingFromMinecraftThread()) {
+            // try wrapping this call in runOnMcThread() in your code
+            throw new Error("Calling loadChunk from non-mc-thread");
+        }
+
         // load into game by pretending this comes from the game server
-        runOnMcThread(() -> {
-            NetHandlerPlayClient conn = mc.getConnection();
-            if (conn == null) {
-                env.log(Level.ERROR, "mc.connection == null, ignoring extra chunk at %s", chunk.pos);
-                return;
-            }
-            conn.handleChunkData(chunk.packet);
-            env.log(Level.DEBUG, "Successfully loaded chunk at %s", chunk.pos);
-        });
+        NetHandlerPlayClient conn = mc.getConnection();
+        if (conn == null) {
+            env.log(Level.ERROR, "mc.connection == null, ignoring extra chunk at %s", chunk.pos);
+            return;
+        }
+        conn.handleChunkData(chunk.packet);
     }
 
     @Override
@@ -69,14 +71,17 @@ public class McGame implements IMcGame {
 
     @Override
     public void unloadChunk(Pos2 pos) {
-        runOnMcThread(() -> {
-            NetHandlerPlayClient conn = mc.getConnection();
-            if (conn == null) {
-                env.log(Level.ERROR, "mc.connection == null, not unloading chunk at %s", pos);
-                return;
-            }
-            conn.processChunkUnload(new SPacketUnloadChunk(pos.x, pos.z));
-        });
+        if (!mc.isCallingFromMinecraftThread()) {
+            // try wrapping this call in runOnMcThread() in your code
+            throw new Error("Calling unloadChunk from non-mc-thread");
+        }
+
+        NetHandlerPlayClient conn = mc.getConnection();
+        if (conn == null) {
+            env.log(Level.ERROR, "mc.connection == null, not unloading chunk at %s", pos);
+            return;
+        }
+        conn.processChunkUnload(new SPacketUnloadChunk(pos.x, pos.z));
     }
 
     private static LongSet getLoadedChunkLongs() {
