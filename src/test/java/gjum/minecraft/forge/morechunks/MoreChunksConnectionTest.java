@@ -144,20 +144,15 @@ public class MoreChunksConnectionTest extends TestCase {
     }
 
     public void testSendsChunkSpeedWhenChangedInConfig() {
-        Config newConfig = new Config();
-        newConfig.setChunkLoadsPerSecond(42);
-
-        moreChunks.onConfigChanged(newConfig);
+        conf.setChunkLoadsPerSecond(42);
+        moreChunks.onConfigChanged();
 
         assertEquals("Should send new chunk speed to server when it changed in the config",
                 INFO_SET_CHUNKS_PER_SEC + "42", chunkServer.getLastCall().args[0]);
     }
 
     public void testSendsNoChunkSpeedWhenNotChangedInConfig() {
-        Config newConfig = new Config();
-        newConfig.setChunkLoadsPerSecond(conf.getChunkLoadsPerSecond());
-
-        moreChunks.onConfigChanged(newConfig);
+        moreChunks.onConfigChanged();
 
         assertTrue("Should not send chunk speed to server when it didn't change",
                 !chunkServer.containsCall(ChunkServerCall.SEND_STRING_MSG));

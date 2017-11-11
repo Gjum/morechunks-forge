@@ -17,11 +17,14 @@ public class MoreChunks implements IMoreChunks {
 
     private long nextReconnectTime = 0;
     private long nextRetryInterval = 1000;
+    private int currentChunkLoadsPerSecond;
 
     public MoreChunks(IMcGame game, IConfig config, IEnv env) {
         this.game = game;
         this.config = config;
         this.env = env;
+
+        currentChunkLoadsPerSecond = config.getChunkLoadsPerSecond();
     }
 
     public void setChunkServer(IChunkServer chunkServer) {
@@ -46,12 +49,11 @@ public class MoreChunks implements IMoreChunks {
     }
 
     @Override
-    public void onConfigChanged(IConfig newConfig) {
-        if (config.getChunkLoadsPerSecond() != newConfig.getChunkLoadsPerSecond()) {
-            chunkServer.sendStringMessage(INFO_SET_CHUNKS_PER_SEC + newConfig.getChunkLoadsPerSecond());
+    public void onConfigChanged() {
+        if (currentChunkLoadsPerSecond != config.getChunkLoadsPerSecond()) {
+            currentChunkLoadsPerSecond = config.getChunkLoadsPerSecond();
+            chunkServer.sendStringMessage(INFO_SET_CHUNKS_PER_SEC + currentChunkLoadsPerSecond);
         }
-
-        config = newConfig;
     }
 
     @Override

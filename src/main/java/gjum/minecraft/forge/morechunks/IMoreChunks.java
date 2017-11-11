@@ -5,7 +5,7 @@ public interface IMoreChunks {
 
     void onChunkServerDisconnected(DisconnectReason reason);
 
-    void onConfigChanged(IConfig newConfig);
+    void onConfigChanged();
 
     void onGameConnected();
 

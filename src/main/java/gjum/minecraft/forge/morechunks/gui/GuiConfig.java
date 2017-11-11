@@ -179,7 +179,7 @@ public class GuiConfig extends GuiScreen {
 
         try {
             config.save();
-            moreChunks.onConfigChanged(config);
+            moreChunks.onConfigChanged();
         } catch (IOException e) {
             e.printStackTrace();
             env.log(Level.WARN, "Could not save settings: %s", e.getMessage());
