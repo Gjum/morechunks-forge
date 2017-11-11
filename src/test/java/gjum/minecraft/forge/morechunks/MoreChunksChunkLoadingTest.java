@@ -174,7 +174,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
         };
         game.loadedChunks.addAll(Arrays.asList(chunks));
 
-        moreChunks.onReceiveExtraChunk(new Chunk(new Pos2(5, 0), null));
+        moreChunks.onReceiveExtraChunk(new Chunk(new Pos2(5, 1), null));
 
         for (Pos2 chunk : chunks) {
             assertTrue("Should unload chunks over capacity on game chunk load: " + chunk,

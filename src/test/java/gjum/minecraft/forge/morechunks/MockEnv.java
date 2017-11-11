@@ -12,5 +12,6 @@ public class MockEnv implements IEnv {
 
     @Override
     public void log(Level level, String format, Object... args) {
+        System.out.println(level + " " + String.format(format, args));
     }
 }

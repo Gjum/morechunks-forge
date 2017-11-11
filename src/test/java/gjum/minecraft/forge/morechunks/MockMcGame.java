@@ -8,7 +8,7 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
 
     ArrayList<Pos2> loadedChunks = new ArrayList<>();
 
-    enum GameCall {LOAD_CHUNK, UNLOAD_CHUNK, IS_INGAME, GET_LOADED_CHUNKS}
+    enum GameCall {LOAD_CHUNK, UNLOAD_CHUNK, IS_INGAME, RUN_ON_MC_THREAD, GET_LOADED_CHUNKS}
 
     @Override
     public void loadChunk(Chunk chunk) {
@@ -18,6 +18,7 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
 
     @Override
     public void runOnMcThread(Runnable runnable) {
+        trackCall(GameCall.RUN_ON_MC_THREAD, runnable);
         runnable.run();
     }
 
