@@ -1,8 +1,43 @@
-# ChunkFix
+# MoreChunks Minecraft Mod
 
-On servers with very small render distance, load/share chunks via a separate server.
+Increase render distance on servers with very small default view distance.
 
-This is the Forge client mod. You can find the server at [Gjum/morechunks-server](https://github.com/Gjum/morechunks-server).
+## Getting started
+
+[Download the latest `MoreChunks_(version).jar`](https://github.com/Gjum/morechunks-forge/releases/latest)
+
+You can access the settings through Forge's mod list:
+- from the main menu: `Mods` -> select `MoreChunks` on the left -> click `Config` at the bottom left
+- from the ingame menu: `Mods config` -> select `MoreChunks` on the left -> click `Config` at the bottom left
+
+Or assign a key to `MoreChunks: Open Settings` in `Options` -> `Controls`.
+
+## What is this?
+
+The server you play on has a very short view distance,
+and you can't see very far ahead when you're traveling?
+
+In addition to the close-by area that you receive
+from the Minecraft game server you're playing on,
+this mod loads the remaining area to cover your whole render distance.
+
+The area you receive from the game will be shared with others
+when they travel through that area in the future,
+and it will look to them the same as to you.
+
+## What information is shared?
+
+Other players have no way of finding out where you are at any time.
+
+When you request some chunks to cover your render distance,
+the mod will know that you're within render distance of these chunks.
+And looking at all your requests, it's easy to calculate the chunk you're in.
+But there's no way for anyone to know your y-coordinate or your exact x and z coordinates within that chunk.
+
+If you need the exact details of the inner workings of the system,
+you can look at the server code here: [Gjum/morechunks-server](https://github.com/Gjum/morechunks-server).
+
+## Development
 
 Package the distributable `.jar`: `gradlew reobf`
 You can then find it in `build/libs/`.
