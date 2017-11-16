@@ -10,23 +10,20 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.play.server.SPacketChunkData;
 import net.minecraft.util.LazyLoadBase;
 import org.apache.logging.log4j.Level;
 
 import java.io.IOException;
-import java.net.SocketAddress;
 import java.util.Collection;
 
 import static net.minecraft.network.NetworkManager.CLIENT_EPOLL_EVENTLOOP;
 import static net.minecraft.network.NetworkManager.CLIENT_NIO_EVENTLOOP;
 
 public class ChunkServer implements IChunkServer {
-    private final IConfig conf;
     private final IEnv env;
-    private final IMoreChunks moreChunks;
+    private IMoreChunks moreChunks;
 
     private Channel channel;
 
@@ -37,20 +34,20 @@ public class ChunkServer implements IChunkServer {
     private static final byte SEND_STRING_MSG = 1;
     private static final byte SEND_CHUNKS_REQUEST = 2;
 
-    public ChunkServer(IConfig conf, IEnv env, IMoreChunks moreChunks) {
-        this.moreChunks = moreChunks;
+    public ChunkServer(IEnv env) {
         this.env = env;
-        this.conf = conf;
     }
 
     @Override
-    public synchronized void connect() {
+    public synchronized void connect(String chunkServerAddress, IMoreChunks moreChunks) {
         if (isConnected()) {
             env.log(Level.WARN, "already connected");
             return;
         }
 
-        String[] hostPort = conf.getChunkServerAddress().split(":");
+        this.moreChunks = moreChunks;
+
+        String[] hostPort = chunkServerAddress.split(":");
         String host = hostPort[0];
         int port = 12312;
         if (hostPort.length > 1) port = Integer.parseUnsignedInt(hostPort[1]);
@@ -81,20 +78,6 @@ public class ChunkServer implements IChunkServer {
                 return;
             }
 
-            sendStringMessage("mod.version=" + MoreChunksMod.VERSION);
-            sendStringMessage(INFO_SET_CHUNKS_PER_SEC + conf.getChunkLoadsPerSecond());
-
-            Minecraft mc = Minecraft.getMinecraft();
-            NetHandlerPlayClient mcConn = mc.getConnection();
-            if (mcConn == null) {
-                env.log(Level.ERROR, "mcConn == null");
-            } else {
-                SocketAddress mcServerAddress = mcConn.getNetworkManager().channel().remoteAddress();
-                sendStringMessage("game.address=" + mcServerAddress);
-            }
-
-            sendStringMessage("game.dimension=" + mc.player.dimension);
-
             moreChunks.onChunkServerConnected();
         });
     }
@@ -104,6 +87,7 @@ public class ChunkServer implements IChunkServer {
         if (isConnected()) {
             channel.close();
             channel.disconnect();
+            channel = null;
         }
 
         moreChunks.onChunkServerDisconnected(reason);
@@ -112,28 +96,6 @@ public class ChunkServer implements IChunkServer {
     @Override
     public boolean isConnected() {
         return channel != null && channel.isOpen();
-    }
-
-    /**
-     * Packet format:
-     * - messageType (byte): 2
-     * - numEntries (byte): how many chunks are requested
-     * - chunkCoords (List<Long>): the coords of the requested chunks, combined into single Long values
-     */
-    @Override
-    public void requestChunks(Collection<Pos2> chunksPos) {
-        if (!isConnected()) {
-            env.log(Level.ERROR, "Trying to request %s chunks while disconnected", chunksPos.size());
-            return;
-        }
-
-        env.log(Level.DEBUG, "Requesting %d chunks", chunksPos.size());
-        ByteBuf buf = channel.alloc().buffer()
-                .writeByte(SEND_CHUNKS_REQUEST);
-        for (Pos2 pos : chunksPos) {
-            buf.writeLong(pos.asLong());
-        }
-        channel.writeAndFlush(buf);
     }
 
     /**
@@ -165,6 +127,38 @@ public class ChunkServer implements IChunkServer {
                 .writeLong(env.currentTimeMillis())
                 .writeBytes(chunkDataBuf)
         );
+    }
+
+    /**
+     * Packet format:
+     * - messageType (byte): 2
+     * - numEntries (byte): how many chunks are requested
+     * - chunkCoords (List<Long>): the coords of the requested chunks, combined into single Long values
+     */
+    @Override
+    public void sendChunksRequest(Collection<Pos2> chunksPos) {
+        if (!isConnected()) {
+            env.log(Level.ERROR, "Trying to request %s chunks while disconnected", chunksPos.size());
+            return;
+        }
+
+        env.log(Level.DEBUG, "Requesting %d chunks", chunksPos.size());
+        ByteBuf buf = channel.alloc().buffer()
+                .writeByte(SEND_CHUNKS_REQUEST);
+        for (Pos2 pos : chunksPos) {
+            buf.writeLong(pos.asLong());
+        }
+        channel.writeAndFlush(buf);
+    }
+
+    @Override
+    public void sendChunkLoadsPerSecond(int chunkLoadsPerSecond) {
+        sendStringMessage("mod.chunksPerSecond=" + chunkLoadsPerSecond);
+    }
+
+    @Override
+    public void sendPlayerDimension(int dim) {
+        sendStringMessage("game.dimension=" + dim);
     }
 
     /**

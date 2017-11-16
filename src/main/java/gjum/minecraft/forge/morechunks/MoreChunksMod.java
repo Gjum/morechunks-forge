@@ -1,10 +1,7 @@
 package gjum.minecraft.forge.morechunks;
 
 import gjum.minecraft.forge.morechunks.gui.GuiConfig;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelPipeline;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerSetSpawnEvent;
@@ -42,18 +39,10 @@ public class MoreChunksMod {
     public final KeyBinding openGuiKey = new KeyBinding(MOD_ID + ".key.openGui", Keyboard.KEY_NONE, MOD_NAME);
     public final KeyBinding toggleEnabledKey = new KeyBinding(MOD_ID + ".key.toggleEnabled", Keyboard.KEY_NONE, MOD_NAME);
 
+    public final Config config = new Config();
     public final IEnv env = new Env();
-    public final IConfig config = new Config();
-    public final MoreChunks moreChunks;
-
-    private final McGame game = new McGame(env);
-
-    private ChannelHandler moreChunksPacketHandler;
-
-    public MoreChunksMod() {
-        moreChunks = new MoreChunks(game, config, env);
-        moreChunks.setChunkServer(new ChunkServer(config, env, moreChunks));
-    }
+    public final McGame game = new McGame(env);
+    public final MoreChunks moreChunks = new MoreChunks(game, config, env, new ChunkServer(env), VERSION);
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -74,6 +63,9 @@ public class MoreChunksMod {
             e.printStackTrace();
             env.log(Level.WARN, "Failed to save config to %s", configFile);
         }
+
+        config.addSubscriber(moreChunks);
+        config.propagateChange();
     }
 
     @Mod.EventHandler
@@ -88,33 +80,18 @@ public class MoreChunksMod {
 
     @SubscribeEvent
     public void onPlayerSetSpawn(PlayerSetSpawnEvent event) {
-        if (moreChunksPacketHandler != null) return;
-
-        Minecraft mc = Minecraft.getMinecraft();
-        NetHandlerPlayClient mcConnection = mc.getConnection();
-        if (mcConnection == null) {
-            env.log(Level.ERROR, "Could not inject packet handler into pipeline: mc.connection == null");
-            return;
+        if (!moreChunks.chunkServer.isConnected()) {
+            moreChunks.onGameConnected();
         }
-
-        env.log(Level.DEBUG, "Connected to game, injecting packet handler into pipeline");
-
-        moreChunksPacketHandler = new PacketHandler(moreChunks);
-
-        ChannelPipeline pipe = mcConnection.getNetworkManager().channel().pipeline();
-        pipe.addBefore("fml:packet_handler", PacketHandler.NAME, moreChunksPacketHandler);
-
-        moreChunks.onGameConnected();
     }
 
     @SubscribeEvent
-    public void onGameDisconnect(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
+    public void onGameDisconnected(FMLNetworkEvent.ClientDisconnectionFromServerEvent event) {
         moreChunks.onGameDisconnected();
-        moreChunksPacketHandler = null;
     }
 
     @SubscribeEvent
-    public void onDimensionChange(PlayerEvent.PlayerChangedDimensionEvent event) {
+    public void onPlayerChangedDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         moreChunks.onPlayerChangedDimension(event.toDim);
     }
 
@@ -125,7 +102,7 @@ public class MoreChunksMod {
             mc.displayGuiScreen(new GuiConfig(mc.currentScreen));
         }
         if (toggleEnabledKey.isPressed()) {
-            config.setEnabled(!config.getEnabled());
+            config.setModEnabled(!config.isModEnabled());
         }
     }
 }

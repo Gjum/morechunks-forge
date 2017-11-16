@@ -3,13 +3,11 @@ package gjum.minecraft.forge.morechunks;
 import java.util.Collection;
 
 public interface IChunkServer {
-    String INFO_SET_CHUNKS_PER_SEC = "mod.chunksPerSecond=";
 
     /**
-     * (Re-)Connect to the chunk server and send initial information
-     * about the client, such as world name and chunk sending speed.
+     * Connect to the chunk server. On connection, calls MoreChunks so it can send initial information.
      */
-    void connect();
+    void connect(String chunkServerAddress, IMoreChunks moreChunks);
 
     void disconnect(DisconnectReason reason);
 
@@ -20,12 +18,16 @@ public interface IChunkServer {
      * It will then send those chunks to the client
      * in that order, skipping any unknown chunks.
      */
-    void requestChunks(Collection<Pos2> chunksPos);
+    void sendChunksRequest(Collection<Pos2> chunksPos);
 
     /**
      * Send the chunk to the chunk server, to share it with other players.
      */
     void sendChunk(Chunk chunk);
+
+    void sendChunkLoadsPerSecond(int chunkLoadsPerSecond);
+
+    void sendPlayerDimension(int dim);
 
     void sendStringMessage(String message);
 }

@@ -1,5 +1,6 @@
 package gjum.minecraft.forge.morechunks;
 
+import io.netty.channel.ChannelPipeline;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.client.Minecraft;
@@ -11,13 +12,21 @@ import org.apache.logging.log4j.Level;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class McGame implements IMcGame {
     private static final Minecraft mc = Minecraft.getMinecraft();
     private IEnv env;
+    private PacketHandler packetHandler;
 
     public McGame(IEnv env) {
         this.env = env;
+    }
+
+    @Override
+    public String getCurrentServerIp() {
+        if (null == mc.getCurrentServerData()) return null;
+        return mc.getCurrentServerData().serverIP;
     }
 
     @Override
@@ -39,8 +48,37 @@ public class McGame implements IMcGame {
     }
 
     @Override
+    public int getPlayerDimension() {
+        return mc.player.dimension;
+    }
+
+    @Override
     public int getRenderDistance() {
         return mc.gameSettings.renderDistanceChunks;
+    }
+
+    @Override
+    public void insertPacketHandler(IMoreChunks moreChunks) {
+        final String handlerName = "fml:packet_handler";
+
+        Minecraft mc = Minecraft.getMinecraft();
+        NetHandlerPlayClient mcConnection = mc.getConnection();
+        if (mcConnection == null) {
+            env.log(Level.ERROR, "Could not inject packet handler into pipeline: mc.connection == null");
+            return;
+        }
+
+        ChannelPipeline pipe = mcConnection.getNetworkManager().channel().pipeline();
+
+        try {
+            pipe.remove(handlerName);
+        } catch (NoSuchElementException ignored) {
+        }
+
+        env.log(Level.DEBUG, "Connected to game, injecting packet handler into pipeline");
+
+        packetHandler = new PacketHandler(moreChunks);
+        pipe.addBefore(handlerName, PacketHandler.NAME, packetHandler);
     }
 
     @Override

@@ -1,8 +1,7 @@
 package gjum.minecraft.forge.morechunks.gui;
 
-import gjum.minecraft.forge.morechunks.IConfig;
 import gjum.minecraft.forge.morechunks.IEnv;
-import gjum.minecraft.forge.morechunks.MoreChunks;
+import gjum.minecraft.forge.morechunks.Config;
 import gjum.minecraft.forge.morechunks.MoreChunksMod;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiLabel;
@@ -17,9 +16,8 @@ import java.util.ArrayList;
 
 public class GuiConfig extends GuiScreen {
     private final GuiScreen parentScreen;
-    private final IConfig config;
+    private final Config config;
     private final IEnv env;
-    private final MoreChunks moreChunks;
 
     private TextField txtAddress;
     private TextField txtChunkLoadsPerSecond;
@@ -40,7 +38,6 @@ public class GuiConfig extends GuiScreen {
         this.parentScreen = parentScreen;
         config = MoreChunksMod.instance.config;
         env = MoreChunksMod.instance.env;
-        moreChunks = MoreChunksMod.instance.moreChunks;
     }
 
     @Override
@@ -63,20 +60,12 @@ public class GuiConfig extends GuiScreen {
         title.setCentered();
         title.addLine("MoreChunks Settings");
 
-        textFieldList.add(txtAddress = new TextField(nextId(), fontRendererObj,
-                leftEdge, topEdge + ROW_HEIGHT * currentRow,
-                2 * THIRD_WIDTH,
-                "Chunk server address", config.getChunkServerAddress()));
         textFieldList.add(txtChunkLoadsPerSecond = new TextField(nextId(), fontRendererObj,
                 leftEdge + 2 * THIRD_WIDTH, topEdge + ROW_HEIGHT * currentRow,
                 THIRD_WIDTH,
                 "Loading speed", config.getChunkLoadsPerSecond()));
         currentRow++;
 
-        textFieldList.add(txtServerRenderDistance = new TextField(nextId(), fontRendererObj,
-                leftEdge, topEdge + ROW_HEIGHT * currentRow,
-                HALF_WIDTH,
-                "Server view distance", config.getServerRenderDistance()));
         textFieldList.add(txtMaxNumChunksLoaded = new TextField(nextId(), fontRendererObj,
                 leftEdge + HALF_WIDTH, topEdge + ROW_HEIGHT * currentRow,
                 HALF_WIDTH,
@@ -160,8 +149,6 @@ public class GuiConfig extends GuiScreen {
     }
 
     private void saveAndLeave() {
-        config.setChunkServerAddress(txtAddress.getText().trim());
-        config.setServerRenderDistance(Integer.parseUnsignedInt(txtServerRenderDistance.getText()));
 
         if (txtChunkLoadsPerSecond.getText().isEmpty()) {
             config.setChunkLoadsPerSecond(999); // "unlimited"
@@ -179,11 +166,12 @@ public class GuiConfig extends GuiScreen {
 
         try {
             config.save();
-            moreChunks.onConfigChanged();
         } catch (IOException e) {
             e.printStackTrace();
             env.log(Level.WARN, "Could not save settings: %s", e.getMessage());
         }
+
+        config.propagateChange();
 
         mc.displayGuiScreen(parentScreen);
     }

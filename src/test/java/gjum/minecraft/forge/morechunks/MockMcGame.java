@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcGame {
-    boolean ingame;
+    public static final String MC_ADDRESS = "mc.example.com";
 
+    String currentServerIp = null;
     ArrayList<Pos2> loadedChunks = new ArrayList<>();
 
-    enum GameCall {LOAD_CHUNK, UNLOAD_CHUNK, IS_INGAME, RUN_ON_MC_THREAD, GET_LOADED_CHUNKS}
+    enum GameCall {LOAD_CHUNK, UNLOAD_CHUNK, IS_INGAME, RUN_ON_MC_THREAD, INSERT_PACKET_HANDLER, GET_LOADED_CHUNKS}
 
     @Override
     public void loadChunk(Chunk chunk) {
@@ -29,6 +30,11 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
     }
 
     @Override
+    public String getCurrentServerIp() {
+        return currentServerIp;
+    }
+
+    @Override
     public List<Pos2> getLoadedChunks() {
         trackCall(GameCall.GET_LOADED_CHUNKS);
         return loadedChunks;
@@ -40,13 +46,23 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
     }
 
     @Override
+    public int getPlayerDimension() {
+        return 0;
+    }
+
+    @Override
     public int getRenderDistance() {
         return 5;
     }
 
     @Override
+    public void insertPacketHandler(IMoreChunks moreChunks) {
+        trackCall(GameCall.INSERT_PACKET_HANDLER, moreChunks);
+    }
+
+    @Override
     public boolean isIngame() {
         trackCall(GameCall.IS_INGAME);
-        return ingame;
+        return currentServerIp != null;
     }
 }

@@ -7,26 +7,30 @@ import junit.framework.TestCase;
 import java.util.Arrays;
 import java.util.List;
 
+import static gjum.minecraft.forge.morechunks.MockMcGame.MC_ADDRESS;
+
 public class MoreChunksChunkLoadingTest extends TestCase {
 
     private MoreChunks moreChunks;
     private MockMcGame game;
     private MockChunkServer chunkServer;
-    private IConfig conf;
+    private McServerConfig mcServerConfig;
+    private Config conf;
     private MockEnv env;
 
     public void setUp() throws Exception {
         super.setUp();
         game = new MockMcGame();
         chunkServer = new MockChunkServer();
+        mcServerConfig = new McServerConfig(MC_ADDRESS, true, MockChunkServer.ADDRESS, 4);
         conf = new Config();
+        conf.putMcServerConfig(mcServerConfig);
         env = new MockEnv();
-        moreChunks = new MoreChunks(game, conf, env);
-        moreChunks.setChunkServer(chunkServer);
+        moreChunks = new MoreChunks(game, conf, env, chunkServer, MoreChunksMod.VERSION);
     }
 
     public void testLoadsExtraChunk() {
-        game.ingame = true;
+        game.currentServerIp = MC_ADDRESS;
         final Chunk chunk = new Chunk(new Pos2(5, 0), null);
         moreChunks.onReceiveExtraChunk(chunk);
         assertTrue("should load extra chunk",
@@ -36,21 +40,21 @@ public class MoreChunksChunkLoadingTest extends TestCase {
     }
 
     public void testIgnoresExtraChunkWhenNotIngame() {
-        game.ingame = false;
+        game.currentServerIp = null;
         final Chunk chunk = new Chunk(new Pos2(5, 0), null);
         moreChunks.onReceiveExtraChunk(chunk);
         assertFalse(game.containsCall(GameCall.LOAD_CHUNK));
     }
 
     public void testIgnoresExtraChunkWhenOutsideRenderDistance() {
-        game.ingame = true;
+        game.currentServerIp = MC_ADDRESS;
         final Chunk chunk = new Chunk(new Pos2(6, 6), null);
         moreChunks.onReceiveExtraChunk(chunk);
         assertFalse(game.containsCall(GameCall.LOAD_CHUNK));
     }
 
     public void testIgnoresExtraChunkWhenHasGameChunkThere() {
-        game.ingame = true;
+        game.currentServerIp = MC_ADDRESS;
         final Chunk gameChunk = new Chunk(new Pos2(6, 0), null);
         moreChunks.onReceiveGameChunk(gameChunk);
         game.calls.clear();
@@ -101,7 +105,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
 
     private boolean didRequestForChunkAt(Pos2 pos) {
         return chunkServer.containsCall(snap -> {
-            if (snap.call != ChunkServerCall.REQUEST_CHUNKS) return false;
+            if (snap.call != ChunkServerCall.SEND_CHUNKS_REQUEST) return false;
             @SuppressWarnings("unchecked")
             List<Pos2> posList = (List<Pos2>) snap.args[0];
             return posList.contains(pos);
@@ -110,7 +114,9 @@ public class MoreChunksChunkLoadingTest extends TestCase {
 
     public void testRequestsExtraChunks() {
         chunkServer.connected = true;
-        game.ingame = true;
+        game.currentServerIp = MC_ADDRESS;
+        moreChunks.onGameConnected();
+
         moreChunks.onReceiveGameChunk(new Chunk(new Pos2(0, 0), null));
 
         assertTrue("should request extra chunks outside server's render distance",
@@ -125,7 +131,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
 
     public void testDoesNotRequestExtraChunksForLoadedChunks() {
         chunkServer.connected = true;
-        game.ingame = true;
+        game.currentServerIp = MC_ADDRESS;
         Pos2 alreadyLoaded = new Pos2(5, 1);
         game.loadedChunks.add(alreadyLoaded);
 
@@ -137,15 +143,15 @@ public class MoreChunksChunkLoadingTest extends TestCase {
 
     public void testDoesNotRequestExtraChunksWhenNotConnected() {
         chunkServer.connected = false;
-        game.ingame = true;
+        game.currentServerIp = MC_ADDRESS;
         moreChunks.onReceiveGameChunk(new Chunk(new Pos2(0, 0), null));
 
         assertTrue("should not request extra chunks when not connected to chunk server",
-                !chunkServer.containsCall(ChunkServerCall.REQUEST_CHUNKS));
+                !chunkServer.containsCall(ChunkServerCall.SEND_CHUNKS_REQUEST));
     }
 
     public void testUnloadsChunksOverCapOnGameChunkLoad() {
-        game.ingame = true;
+        game.currentServerIp = MC_ADDRESS;
         conf.setMaxNumChunksLoaded(0);
         Pos2[] chunks = {
                 new Pos2(7, 0),
@@ -165,7 +171,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
     }
 
     public void testUnloadsChunksOverCapOnExtraChunkLoad() {
-        game.ingame = true;
+        game.currentServerIp = MC_ADDRESS;
         conf.setMaxNumChunksLoaded(0);
         Pos2[] chunks = {
                 new Pos2(7, 0),

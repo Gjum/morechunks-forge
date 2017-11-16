@@ -8,134 +8,115 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.*;
 
-public class Config implements IConfig {
+public class Config {
     @Expose()
-    private int chunkLoadsPerSecond;
+    private boolean modEnabled = true;
     @Expose()
-    private String chunkServerAddress;
+    private int chunkLoadsPerSecond = 40;
     @Expose()
-    private boolean enabled;
-    @Expose()
-    private int maxNumChunksLoaded;
-    @Expose()
-    private int serverRenderDistance;
+    private int maxNumChunksLoaded = 512;
+    @Expose
+    private Map<String, McServerConfig> mcServerConfigs = new HashMap<>();
 
-    private static final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+    private final Collection<IMoreChunks> subscribers = new ArrayList<>();
 
     private File configFile;
 
-    public Config() {
-        loadDefaults();
-    }
+    private static final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
 
-    private void loadDefaults() {
-        chunkLoadsPerSecond = 40;
-        chunkServerAddress = "gjum.isteinvids.co.uk:12312";
-        enabled = true;
-        maxNumChunksLoaded = 512;
-        serverRenderDistance = 4;
-    }
-
-    private void copyFrom(IConfig config) {
-        setChunkLoadsPerSecond(config.getChunkLoadsPerSecond());
-        setChunkServerAddress(config.getChunkServerAddress());
-        setEnabled(config.getEnabled());
-        setMaxNumChunksLoaded(config.getMaxNumChunksLoaded());
-        setServerRenderDistance(config.getServerRenderDistance());
+    public void addSubscriber(IMoreChunks subscriber) {
+        subscribers.add(subscriber);
     }
 
     // TODO cache blacklist using bitwise filter thing
     // because there will be lots of non-matches, which that data structure is optimized for
 
-    @Override
     public void blacklistCircle(Pos2 center, int radius) {
         // TODO store in source-of-truth, mark blacklist as dirty
     }
 
-    @Override
     public void blacklistRectangle(Pos2 corner1, Pos2 corner2) {
         // TODO store in source-of-truth, mark blacklist as dirty
     }
 
-    @Override
     public boolean canPublishChunk(Pos2 chunkPos) {
         // TODO rebuild blacklist if dirty
         // TODO check against blacklist
         return true;
     }
 
-    @Override
     public int getChunkLoadsPerSecond() {
         return chunkLoadsPerSecond;
     }
 
-    @Override
-    public String getChunkServerAddress() {
-        return chunkServerAddress;
-    }
-
-    // TODO allow disabling the whole mod
-    @Override
-    public boolean getEnabled() {
-        return enabled;
-    }
-
-    @Override
     public int getMaxNumChunksLoaded() {
         return maxNumChunksLoaded;
     }
 
-    @Override
-    public int getServerRenderDistance() {
-        return serverRenderDistance;
+    public McServerConfig getMcServerConfig(String serverAddress) {
+        return mcServerConfigs.get(serverAddress);
     }
 
-    @Override
-    public void load(File configFile) throws IOException {
-        this.configFile = configFile;
+    public Set<String> getMcServerKeys() {
+        return mcServerConfigs.keySet();
+    }
 
+    public boolean isModEnabled() {
+        return modEnabled;
+    }
+
+    public void load(File configFile) throws IOException {
         FileReader reader = new FileReader(configFile);
         copyFrom(gson.fromJson(reader, this.getClass()));
         reader.close();
-    }
-
-    @Override
-    public void save() throws IOException {
-        save(this.configFile);
-    }
-
-    @Override
-    public void save(File configFile) throws IOException {
         this.configFile = configFile;
+    }
+
+    private void copyFrom(Config newConf) {
+        setModEnabled(newConf.isModEnabled());
+        setChunkLoadsPerSecond(newConf.getChunkLoadsPerSecond());
+        setMaxNumChunksLoaded(newConf.getMaxNumChunksLoaded());
+
+        mcServerConfigs.clear();
+        for (String address : newConf.getMcServerKeys()) {
+            putMcServerConfig(newConf.getMcServerConfig(address));
+        }
+    }
+
+    public void save() throws IOException {
+        save(configFile);
+    }
+
+    public void save(File configFile) throws IOException {
         String json = gson.toJson(this);
         FileOutputStream fos = new FileOutputStream(configFile);
         fos.write(json.getBytes());
         fos.close();
+
+        this.configFile = configFile;
     }
 
-    @Override
+    public void propagateChange() {
+        for (IMoreChunks subscriber : subscribers) {
+            subscriber.onConfigChanged();
+        }
+    }
+
+    public void putMcServerConfig(McServerConfig mcServerConfig) {
+        mcServerConfigs.put(mcServerConfig.mcServerAddress, mcServerConfig);
+    }
+
     public void setChunkLoadsPerSecond(int chunksPerSec) {
         this.chunkLoadsPerSecond = chunksPerSec;
     }
 
-    @Override
-    public void setChunkServerAddress(String address) {
-        chunkServerAddress = address;
-    }
-
-    @Override
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    @Override
     public void setMaxNumChunksLoaded(int maxNumChunksLoaded) {
         this.maxNumChunksLoaded = maxNumChunksLoaded;
     }
 
-    @Override
-    public void setServerRenderDistance(int serverRenderDistance) {
-        this.serverRenderDistance = serverRenderDistance;
+    public void setModEnabled(boolean modEnabled) {
+        this.modEnabled = modEnabled;
     }
 }

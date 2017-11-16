@@ -3,35 +3,37 @@ package gjum.minecraft.forge.morechunks;
 import gjum.minecraft.forge.morechunks.MockChunkServer.ChunkServerCall;
 import junit.framework.TestCase;
 
-import static gjum.minecraft.forge.morechunks.IChunkServer.INFO_SET_CHUNKS_PER_SEC;
+import static gjum.minecraft.forge.morechunks.MockMcGame.MC_ADDRESS;
 
 public class MoreChunksConnectionTest extends TestCase {
     private MoreChunks moreChunks;
     private MockMcGame game;
     private MockChunkServer chunkServer;
-    private IConfig conf;
+    private McServerConfig mcServerConfig;
+    private Config conf;
     private MockEnv env;
 
     public void setUp() throws Exception {
         super.setUp();
         game = new MockMcGame();
         chunkServer = new MockChunkServer();
+        mcServerConfig = new McServerConfig(MC_ADDRESS, true, MockChunkServer.ADDRESS, 4);
         conf = new Config();
+        conf.putMcServerConfig(mcServerConfig);
         env = new MockEnv();
-        moreChunks = new MoreChunks(game, conf, env);
-        moreChunks.setChunkServer(chunkServer);
+        moreChunks = new MoreChunks(game, conf, env, chunkServer, MoreChunksMod.VERSION);
     }
 
     public void testConnectsChunkServerOnJoinGame() {
         chunkServer.connected = false;
-        game.ingame = true;
+        game.currentServerIp = MC_ADDRESS;
         moreChunks.onGameConnected();
         assertTrue(chunkServer.containsCall(ChunkServerCall.CONNECT));
     }
 
     public void testDisconnectsChunkServerOnLeaveGame() {
         chunkServer.connected = true;
-        game.ingame = true; // by the nature of Forge's disconnect event, game is still connected at that time
+        game.currentServerIp = MC_ADDRESS; // by the nature of Forge's disconnect event, game is still connected at that time
         moreChunks.onGameDisconnected();
         assertEquals("Should disconnect chunk server when leaving game", ChunkServerCall.DISCONNECT, chunkServer.getLastCall().call);
         ExpectedDisconnect reason = new ExpectedDisconnect("MoreChunks: Game ending");
@@ -45,21 +47,21 @@ public class MoreChunksConnectionTest extends TestCase {
 
     public void testReconnectsOnChunkServerDisconnectWhenIngame() {
         chunkServer.connected = false;
-        game.ingame = true;
+        game.currentServerIp = MC_ADDRESS;
         moreChunks.onChunkServerDisconnected(new DisconnectReason("Test"));
         assertEquals(ChunkServerCall.CONNECT, chunkServer.getLastCall().call);
     }
 
     public void testNoReconnectionOnChunkServerDisconnectWhenNotIngame() {
         chunkServer.connected = false;
-        game.ingame = false;
+        game.currentServerIp = null;
         moreChunks.onChunkServerDisconnected(new DisconnectReason("Test"));
         assertFalse(chunkServer.containsCall(ChunkServerCall.CONNECT));
     }
 
     public void testDisconnectsChunkServerOnConnectWhenNotIngame() {
         chunkServer.connected = true;
-        game.ingame = false;
+        game.currentServerIp = null;
         moreChunks.onChunkServerConnected();
         assertEquals(ChunkServerCall.DISCONNECT, chunkServer.getLastCall().call);
         ExpectedDisconnect reason = new ExpectedDisconnect("MoreChunks: No game running");
@@ -68,13 +70,16 @@ public class MoreChunksConnectionTest extends TestCase {
 
     public void testNoReconnectOnConnectChunkServerWhenNotIngame() {
         chunkServer.connected = true;
-        game.ingame = true;
+        game.currentServerIp = MC_ADDRESS;
         moreChunks.onChunkServerConnected();
-        assertTrue(chunkServer.calls.isEmpty());
+
+        assertTrue("Should not reconnect ChunkServer when not ingame",
+                chunkServer.calls.stream().noneMatch(snap ->
+                        snap.call == ChunkServerCall.CONNECT));
     }
 
     public void testReconnectWithExponentialBackoff() {
-        game.ingame = true;
+        game.currentServerIp = MC_ADDRESS;
         chunkServer.connected = false;
 
         env.nowMs = 0;
@@ -144,11 +149,15 @@ public class MoreChunksConnectionTest extends TestCase {
     }
 
     public void testSendsChunkSpeedWhenChangedInConfig() {
+        chunkServer.connected = true;
         conf.setChunkLoadsPerSecond(42);
+
         moreChunks.onConfigChanged();
 
-        assertEquals("Should send new chunk speed to server when it changed in the config",
-                INFO_SET_CHUNKS_PER_SEC + "42", chunkServer.getLastCall().args[0]);
+        assertTrue("Should send new chunk speed to server when it changed in the config",
+                chunkServer.containsCall(snap ->
+                        snap.call == ChunkServerCall.SEND_CHUNK_LOADS_PER_SEC
+                                && snap.args[0].equals(42)));
     }
 
     public void testSendsNoChunkSpeedWhenNotChangedInConfig() {
