@@ -37,7 +37,6 @@ public class MoreChunksMod {
     public static MoreChunksMod instance;
 
     public final KeyBinding openGuiKey = new KeyBinding(MOD_ID + ".key.openGui", Keyboard.KEY_NONE, MOD_NAME);
-    public final KeyBinding toggleEnabledKey = new KeyBinding(MOD_ID + ".key.toggleEnabled", Keyboard.KEY_NONE, MOD_NAME);
 
     public final Config config = new Config();
     public final IEnv env = new Env();
@@ -100,9 +99,6 @@ public class MoreChunksMod {
         Minecraft mc = Minecraft.getMinecraft();
         if (openGuiKey.isPressed()) {
             mc.displayGuiScreen(new GuiConfig(mc.currentScreen));
-        }
-        if (toggleEnabledKey.isPressed()) {
-            config.setModEnabled(!config.isModEnabled());
         }
     }
 }
