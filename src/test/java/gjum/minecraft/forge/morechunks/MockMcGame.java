@@ -52,7 +52,7 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
 
     @Override
     public int getRenderDistance() {
-        return 5;
+        return 6;
     }
 
     @Override

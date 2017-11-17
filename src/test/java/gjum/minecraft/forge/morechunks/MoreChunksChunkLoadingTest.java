@@ -22,7 +22,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
         super.setUp();
         game = new MockMcGame();
         chunkServer = new MockChunkServer();
-        mcServerConfig = new McServerConfig(MC_ADDRESS, true, MockChunkServer.ADDRESS, 4);
+        mcServerConfig = new McServerConfig(MC_ADDRESS, true, MockChunkServer.ADDRESS, 5);
         conf = new Config();
         conf.putMcServerConfig(mcServerConfig);
         env = new MockEnv();

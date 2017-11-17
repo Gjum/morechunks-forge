@@ -97,7 +97,7 @@ public class MoreChunks implements IMoreChunks {
             return;
         }
 
-        final int chunkDistance = chunk.pos.chebyshevDistance(game.getPlayerChunkPos());
+        final int chunkDistance = 1 + chunk.pos.chebyshevDistance(game.getPlayerChunkPos());
 
         if (chunkDistance > game.getRenderDistance()) {
             env.log(Level.DEBUG, "Discarding too far extra chunk at %s", chunk.pos);
@@ -168,7 +168,7 @@ public class MoreChunks implements IMoreChunks {
             for (int z = player.z - rdClient; z <= player.z + rdClient; z++) {
                 Pos2 chunk = new Pos2(x, z);
 
-                if (player.chebyshevDistance(chunk) <= serverRenderDistance) {
+                if (1 + player.chebyshevDistance(chunk) <= serverRenderDistance) {
                     // do not load extra chunks inside the server's render distance,
                     // we expect the server to send game chunks here eventually
                     continue;
@@ -191,7 +191,7 @@ public class MoreChunks implements IMoreChunks {
      */
     private List<Pos2> sortByPlayerDistance(List<Pos2> chunks) {
         final Pos2 player = game.getPlayerChunkPos();
-        chunks.sort(Comparator.comparingDouble(player::euclidDistanceSq));
+        chunks.sort(Comparator.comparingDouble(player::taxicabDistance));
         return chunks;
     }
 
@@ -215,7 +215,7 @@ public class MoreChunks implements IMoreChunks {
         int renderDistance = game.getRenderDistance();
         ArrayList<Pos2> chunksToUnload = new ArrayList<>();
         for (Pos2 chunkPos : game.getLoadedChunks()) {
-            if (player.chebyshevDistance(chunkPos) > renderDistance) {
+            if (1 + player.chebyshevDistance(chunkPos) > renderDistance) {
                 chunksToUnload.add(chunkPos);
             }
         }
