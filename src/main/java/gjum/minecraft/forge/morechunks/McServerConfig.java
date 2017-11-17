@@ -18,11 +18,4 @@ public class McServerConfig {
         this.chunkServerAddress = chunkServerAddress;
         this.serverRenderDistance = serverRenderDistance;
     }
-
-    public McServerConfig(String gameServerAddress) {
-        this.mcServerAddress = gameServerAddress;
-        enabled = true;
-        chunkServerAddress = "gjum.isteinvids.co.uk:12312";
-        serverRenderDistance = 4;
-    }
 }

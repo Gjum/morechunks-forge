@@ -24,7 +24,13 @@ public class Config {
 
     private File configFile;
 
-    private static final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+    public static final String CIV_CLASSIC_ADDRESS = "mc.civclassic.com";
+
+    private static final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
+
+    public Config() {
+        putMcServerConfig(new McServerConfig(CIV_CLASSIC_ADDRESS, true, "gjum.isteinvids.co.uk:12312", 4));
+    }
 
     public void addSubscriber(IMoreChunks subscriber) {
         subscribers.add(subscriber);

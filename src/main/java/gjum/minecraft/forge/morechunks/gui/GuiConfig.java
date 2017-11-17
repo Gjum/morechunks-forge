@@ -38,6 +38,10 @@ public class GuiConfig extends GuiScreen {
         this.parentScreen = parentScreen;
         config = MoreChunksMod.instance.config;
         env = MoreChunksMod.instance.env;
+
+        if (null == config.getMcServerConfig(CIV_CLASSIC_ADDRESS)) {
+            config.putMcServerConfig(new McServerConfig(CIV_CLASSIC_ADDRESS, true, "gjum.isteinvids.co.uk:12312", 4));
+        }
     }
 
     @Override
