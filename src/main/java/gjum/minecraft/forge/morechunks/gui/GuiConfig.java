@@ -1,7 +1,8 @@
 package gjum.minecraft.forge.morechunks.gui;
 
-import gjum.minecraft.forge.morechunks.IEnv;
 import gjum.minecraft.forge.morechunks.Config;
+import gjum.minecraft.forge.morechunks.IEnv;
+import gjum.minecraft.forge.morechunks.McServerConfig;
 import gjum.minecraft.forge.morechunks.MoreChunksMod;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiLabel;
@@ -14,6 +15,8 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static gjum.minecraft.forge.morechunks.Config.CIV_CLASSIC_ADDRESS;
+
 public class GuiConfig extends GuiScreen {
     private final GuiScreen parentScreen;
     private final Config config;
@@ -22,7 +25,6 @@ public class GuiConfig extends GuiScreen {
     private TextField txtAddress;
     private TextField txtChunkLoadsPerSecond;
     private TextField txtMaxNumChunksLoaded;
-    private TextField txtServerRenderDistance;
     private GuiButton btnClose;
 
     private final ArrayList<GuiTextField> textFieldList = new ArrayList<>();
@@ -32,7 +34,6 @@ public class GuiConfig extends GuiScreen {
     private static final int ROW_HEIGHT = DEFAULT_HEIGHT * 2;
     private static final int FULL_WIDTH = 240;
     private static final int HALF_WIDTH = FULL_WIDTH / 2;
-    private static final int THIRD_WIDTH = FULL_WIDTH / 3;
 
     public GuiConfig(GuiScreen parentScreen) {
         this.parentScreen = parentScreen;
@@ -57,29 +58,46 @@ public class GuiConfig extends GuiScreen {
         int currentRow = 0;
 
         GuiLabel title = new GuiLabel(fontRendererObj, nextId(),
-                leftEdge, topEdge + currentRow++,
+                leftEdge, topEdge + ROW_HEIGHT * currentRow,
                 FULL_WIDTH, DEFAULT_HEIGHT,
                 Color.WHITE.getRGB());
         labelList.add(title);
         title.setCentered();
         title.addLine("MoreChunks Settings");
 
-        textFieldList.add(txtChunkLoadsPerSecond = new TextField(nextId(), fontRendererObj,
-                leftEdge + 2 * THIRD_WIDTH, topEdge + ROW_HEIGHT * currentRow,
-                THIRD_WIDTH,
-                "Loading speed", config.getChunkLoadsPerSecond()));
         currentRow++;
 
         textFieldList.add(txtMaxNumChunksLoaded = new TextField(nextId(), fontRendererObj,
-                leftEdge + HALF_WIDTH, topEdge + ROW_HEIGHT * currentRow,
+                leftEdge, topEdge + ROW_HEIGHT * currentRow,
                 HALF_WIDTH,
                 "Max. Chunks loaded", config.getMaxNumChunksLoaded()));
+
+        textFieldList.add(txtChunkLoadsPerSecond = new TextField(nextId(), fontRendererObj,
+                leftEdge + HALF_WIDTH, topEdge + ROW_HEIGHT * currentRow,
+                HALF_WIDTH,
+                "Loading speed (Chunks/sec)", config.getChunkLoadsPerSecond()));
+
+        currentRow++;
+
+        GuiLabel subTitle = new GuiLabel(fontRendererObj, nextId(),
+                leftEdge, topEdge + ROW_HEIGHT * currentRow,
+                HALF_WIDTH, DEFAULT_HEIGHT,
+                Color.WHITE.getRGB());
+        labelList.add(subTitle);
+        subTitle.addLine("CivClassic:");
+
+        textFieldList.add(txtAddress = new TextField(nextId(), fontRendererObj,
+                leftEdge + FULL_WIDTH / 3, topEdge + ROW_HEIGHT * currentRow,
+                FULL_WIDTH * 2 / 3,
+                "Chunk server address", config.getMcServerConfig(CIV_CLASSIC_ADDRESS).chunkServerAddress));
+
         currentRow++;
 
         buttonList.add(btnClose = new GuiButton(nextId(),
                 leftEdge + HALF_WIDTH / 2, topEdge + ROW_HEIGHT * currentRow,
                 HALF_WIDTH, 20,
                 "Save and close"));
+
         currentRow++;
 
         if (currentRow != rowsNum) {
@@ -104,7 +122,6 @@ public class GuiConfig extends GuiScreen {
 
         if (txtAddress.getText().isEmpty()) valid = false;
         try {
-            Integer.parseUnsignedInt(txtServerRenderDistance.getText());
             if (!txtChunkLoadsPerSecond.getText().isEmpty()) {
                 Integer.parseUnsignedInt(txtChunkLoadsPerSecond.getText());
             }
@@ -153,6 +170,12 @@ public class GuiConfig extends GuiScreen {
     }
 
     private void saveAndLeave() {
+        final String chunkServerAddress = txtAddress.getText().trim();
+
+        final boolean enabled = config.getMcServerConfig(CIV_CLASSIC_ADDRESS).enabled; // TODO gui button
+        final int serverRenderDistance = config.getMcServerConfig(CIV_CLASSIC_ADDRESS).serverRenderDistance; // TODO gui field
+
+        config.putMcServerConfig(new McServerConfig(CIV_CLASSIC_ADDRESS, enabled, chunkServerAddress, serverRenderDistance));
 
         if (txtChunkLoadsPerSecond.getText().isEmpty()) {
             config.setChunkLoadsPerSecond(999); // "unlimited"
