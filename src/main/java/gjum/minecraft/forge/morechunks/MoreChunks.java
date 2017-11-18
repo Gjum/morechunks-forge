@@ -82,9 +82,18 @@ public class MoreChunks implements IMoreChunks {
             return;
         }
 
+        final McServerConfig mcServerConfig = config.getMcServerConfig(game.getCurrentServerIp());
+        if (mcServerConfig == null || !mcServerConfig.enabled) {
+            if (chunkServer.isConnected()) {
+                chunkServer.disconnect(new ExpectedDisconnect("Connecting to disabled game server"));
+            }
+
+            return;
+        }
+
         game.insertPacketHandler(this);
 
-        serverRenderDistance = config.getMcServerConfig(game.getCurrentServerIp()).serverRenderDistance;
+        serverRenderDistance = mcServerConfig.serverRenderDistance;
 
         retryConnectChunkServer();
     }
