@@ -7,8 +7,6 @@ import net.minecraft.network.play.server.SPacketUnloadChunk;
 
 import java.net.SocketAddress;
 
-import static gjum.minecraft.forge.morechunks.ChunkData.convertChunk;
-
 /**
  * Hook into Minecraft's packet pipeline
  * to filter out unload packets to keep chunks rendered
@@ -31,10 +29,16 @@ public class PacketHandler extends SimpleChannelInboundHandler<Packet<?>> implem
             return; // ignore packet, we manually unload our chunks
         }
         if (packet instanceof SPacketChunkData) {
-            final SPacketChunkData chunkPacket = (SPacketChunkData) packet;
-            if (chunkPacket.doChunkLoad()) {
-                // full chunk, not just a section
-                moreChunks.onReceiveGameChunk(convertChunk(chunkPacket));
+            try {
+                final SPacketChunkData chunkPacket = (SPacketChunkData) packet;
+                if (chunkPacket.doChunkLoad()) {
+                    // full chunk, not just a section
+                    final Pos2 pos = new Pos2(chunkPacket.getChunkX(), chunkPacket.getChunkZ());
+                    moreChunks.onReceiveGameChunk(new Chunk(pos, chunkPacket));
+                    return; // drop packet, we load it manually
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         ctx.fireChannelRead(packet);

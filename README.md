@@ -25,6 +25,9 @@ The area you receive from the game will be shared with others
 when they travel through that area in the future,
 and it will look to them the same as to you.
 
+Structures below sea level are not shared at all,
+so your bunkers are safe by default.
+
 ## What information is shared?
 
 Other players have no way of finding out where you are at any time.
@@ -33,6 +36,9 @@ When you request some chunks to cover your render distance,
 the mod will know that you're within render distance of these chunks.
 And looking at all your requests, it's easy to calculate the chunk you're in.
 But there's no way for anyone to know your y-coordinate or your exact x and z coordinates within that chunk.
+
+Structures more than 16 blocks below sea level are not shared at all.
+This might be configurable more precisely in a future version.
 
 If you need the exact details of the inner workings of the system,
 you can look at the server code here: [Gjum/morechunks-server](https://github.com/Gjum/morechunks-server).

@@ -31,6 +31,16 @@ public class MoreChunks implements IMoreChunks {
     }
 
     @Override
+    public int decideUndergroundCutOff(int[] heightMap) {
+        final int SECTION_HEIGHT = 16;
+        final int OCEAN_HEIGHT = 62;
+
+        // TODO decide underground cutoff from heightMap
+        // TODO decide underground cutoff from config (min/max in-/exclusion heights)
+        return OCEAN_HEIGHT / SECTION_HEIGHT - 1;
+    }
+
+    @Override
     public void onChunkServerConnected() {
         nextReconnectTime = 0;
         nextRetryInterval = 1000;
@@ -114,6 +124,11 @@ public class MoreChunks implements IMoreChunks {
         }
 
         game.runOnMcThread(() -> {
+            if (game.getLoadedChunks().contains(chunk.pos)) {
+                env.log(Level.DEBUG, "Discarding already loaded extra chunk at %s", chunk.pos);
+                return;
+            }
+
             game.unloadChunk(chunk.pos);
             game.loadChunk(chunk);
             unloadChunksOverCap();
@@ -124,17 +139,19 @@ public class MoreChunks implements IMoreChunks {
     public void onReceiveGameChunk(Chunk chunk) {
         if (chunkServer.isConnected()) {
             chunkServer.sendChunk(chunk);
-            game.runOnMcThread(() -> {
-                game.unloadChunk(chunk.pos);
-                game.loadChunk(chunk);
-
-                requestExtraChunks();
-                unloadChunksOutsideRenderDistance();
-                unloadChunksOverCap();
-            });
         } else {
-            env.log(Level.WARN, "chunkserver not connected when receiving game chunk");
+            env.log(Level.DEBUG, "chunkserver not connected when receiving game chunk");
         }
+        game.runOnMcThread(() -> {
+            game.unloadChunk(chunk.pos);
+            game.loadChunk(chunk);
+
+            if (chunkServer.isConnected()) {
+                requestExtraChunks();
+            }
+            unloadChunksOutsideRenderDistance();
+            unloadChunksOverCap();
+        });
     }
 
     @Override
@@ -165,7 +182,7 @@ public class MoreChunks implements IMoreChunks {
      * that are neither loaded nor within server's' render distance.
      */
     private List<Pos2> getLoadableChunks() {
-        final int rdClient = game.getRenderDistance();
+        final int rdClient = game.getRenderDistance() - 1;
         final Collection<Pos2> loadedChunks = game.getLoadedChunks();
         final Pos2 player = game.getPlayerChunkPos();
 

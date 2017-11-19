@@ -45,6 +45,13 @@ public class ChunkServer implements IChunkServer {
             return;
         }
 
+        if (channel != null) {
+            channel.disconnect();
+            env.log(Level.WARN, "already connected");
+        }
+
+        channel = null;
+
         this.moreChunks = moreChunks;
 
         String[] hostPort = chunkServerAddress.split(":");
@@ -68,8 +75,7 @@ public class ChunkServer implements IChunkServer {
                 });
         ChannelFuture connectedF = bootstrap.connect(host, port);
 
-        channel = connectedF.channel();
-        channel.closeFuture().addListener(closeF ->
+        connectedF.channel().closeFuture().addListener(closeF ->
                 disconnect(new DisconnectReason("ChunkServer: Connection closed")));
 
         connectedF.addListener(connectF -> {
@@ -78,6 +84,8 @@ public class ChunkServer implements IChunkServer {
                 return;
             }
 
+            channel = connectedF.channel();
+
             moreChunks.onChunkServerConnected();
         });
     }
@@ -85,7 +93,6 @@ public class ChunkServer implements IChunkServer {
     @Override
     public void disconnect(DisconnectReason reason) {
         if (isConnected()) {
-            channel.close();
             channel.disconnect();
             channel = null;
         }
@@ -111,22 +118,29 @@ public class ChunkServer implements IChunkServer {
             return;
         }
 
-        env.log(Level.DEBUG, "sending chunk to server: %s", chunk.pos);
+        env.log(Level.DEBUG, "Sending chunk to server: %s", chunk.pos);
 
-        PacketBuffer chunkDataBuf = new PacketBuffer(channel.alloc().buffer());
+        PacketBuffer msgBuf = new PacketBuffer(channel.alloc().buffer());
+        msgBuf
+                .writeByte(SEND_CHUNK_DATA)
+                .writeLong(env.currentTimeMillis());
+
+        final PacketBuffer chunkBuf = new PacketBuffer(channel.alloc().buffer());
         try {
-            chunk.packet.writePacketData(chunkDataBuf);
+            chunk.packet.writePacketData(chunkBuf);
+
+            final ChunkData chunkData = new ChunkData(chunkBuf);
+            final int[] heightMap = null;//chunkData.getHeightMap();
+            final int topReplacedSection = moreChunks.decideUndergroundCutOff(heightMap);
+            chunkData.replaceBottomSections(topReplacedSection);
+            chunkData.serialize(msgBuf);
         } catch (IOException e) {
             env.log(Level.ERROR, "Failed to serialize chunk at %s", chunk.pos);
             e.printStackTrace();
-            return;
+        } finally {
+            chunkBuf.release();
         }
-
-        channel.writeAndFlush(channel.alloc().buffer()
-                .writeByte(SEND_CHUNK_DATA)
-                .writeLong(env.currentTimeMillis())
-                .writeBytes(chunkDataBuf)
-        );
+        channel.writeAndFlush(msgBuf);
     }
 
     /**
@@ -143,6 +157,7 @@ public class ChunkServer implements IChunkServer {
         }
 
         env.log(Level.DEBUG, "Requesting %d chunks", chunksPos.size());
+
         ByteBuf buf = channel.alloc().buffer()
                 .writeByte(SEND_CHUNKS_REQUEST);
         for (Pos2 pos : chunksPos) {
@@ -174,10 +189,11 @@ public class ChunkServer implements IChunkServer {
         }
 
         env.log(Level.DEBUG, "Sending msg \"%s\"", message);
-        channel.writeAndFlush(channel.alloc().buffer()
+
+        final ByteBuf buf = channel.alloc().buffer()
                 .writeByte(SEND_STRING_MSG)
-                .writeBytes(message.getBytes())
-        );
+                .writeBytes(message.getBytes());
+        channel.writeAndFlush(buf);
     }
 
     private class ReceiverHandler extends ChannelInboundHandlerAdapter {
@@ -195,6 +211,7 @@ public class ChunkServer implements IChunkServer {
                         }
 
                         SPacketChunkData chunkPacket = new SPacketChunkData();
+                        msg.writeByte(0); // number of tile entities in the chunk, not contained in our packet format
                         chunkPacket.readPacketData(new PacketBuffer(msg));
                         Pos2 pos = new Pos2(chunkPacket.getChunkX(), chunkPacket.getChunkZ());
 
