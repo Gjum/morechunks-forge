@@ -31,7 +31,11 @@ public class PacketHandler extends SimpleChannelInboundHandler<Packet<?>> implem
             return; // ignore packet, we manually unload our chunks
         }
         if (packet instanceof SPacketChunkData) {
-            moreChunks.onReceiveGameChunk(convertChunk((SPacketChunkData) packet));
+            final SPacketChunkData chunkPacket = (SPacketChunkData) packet;
+            if (chunkPacket.doChunkLoad()) {
+                // full chunk, not just a section
+                moreChunks.onReceiveGameChunk(convertChunk(chunkPacket));
+            }
         }
         ctx.fireChannelRead(packet);
     }
