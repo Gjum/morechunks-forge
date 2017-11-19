@@ -12,10 +12,10 @@ import org.apache.logging.log4j.Level;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 public class McGame implements IMcGame {
     private static final Minecraft mc = Minecraft.getMinecraft();
+
     private IEnv env;
     private PacketHandler packetHandler;
 
@@ -59,9 +59,6 @@ public class McGame implements IMcGame {
 
     @Override
     public void insertPacketHandler(IMoreChunks moreChunks) {
-        final String handlerName = "fml:packet_handler";
-
-        Minecraft mc = Minecraft.getMinecraft();
         NetHandlerPlayClient mcConnection = mc.getConnection();
         if (mcConnection == null) {
             env.log(Level.ERROR, "Could not inject packet handler into pipeline: mc.connection == null");
@@ -70,15 +67,15 @@ public class McGame implements IMcGame {
 
         ChannelPipeline pipe = mcConnection.getNetworkManager().channel().pipeline();
 
-        try {
-            pipe.remove(handlerName);
-        } catch (NoSuchElementException ignored) {
+        if (pipe.get(PacketHandler.NAME) != null) {
+            env.log(Level.WARN, "game server connection pipeline already contains " + PacketHandler.NAME + ", removing and re-adding");
+            pipe.remove(PacketHandler.NAME);
         }
 
-        env.log(Level.DEBUG, "Connected to game, injecting packet handler into pipeline");
-
         packetHandler = new PacketHandler(moreChunks);
-        pipe.addBefore(handlerName, PacketHandler.NAME, packetHandler);
+        pipe.addBefore("fml:packet_handler", PacketHandler.NAME, packetHandler);
+
+        env.log(Level.DEBUG, "Packet handler inserted");
     }
 
     @Override
@@ -120,6 +117,15 @@ public class McGame implements IMcGame {
             return;
         }
         conn.processChunkUnload(new SPacketUnloadChunk(pos.x, pos.z));
+    }
+
+    @Override
+    public boolean wasPacketHandlerAlreadyInserted() {
+        NetHandlerPlayClient mcConnection = mc.getConnection();
+        if (mcConnection == null) return false;
+
+        ChannelPipeline pipe = mcConnection.getNetworkManager().channel().pipeline();
+        return pipe.get(PacketHandler.NAME) != null;
     }
 
     private static LongSet getLoadedChunkLongs() {

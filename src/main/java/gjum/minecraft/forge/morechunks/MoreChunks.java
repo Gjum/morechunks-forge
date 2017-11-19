@@ -68,6 +68,10 @@ public class MoreChunks implements IMoreChunks {
     public void onGameConnected() {
         env.log(Level.DEBUG, "Connected to game");
 
+        if (game.wasPacketHandlerAlreadyInserted()) {
+            return;
+        }
+
         game.insertPacketHandler(this);
 
         serverRenderDistance = config.getMcServerConfig(game.getCurrentServerIp()).serverRenderDistance;
@@ -120,15 +124,17 @@ public class MoreChunks implements IMoreChunks {
     public void onReceiveGameChunk(Chunk chunk) {
         if (chunkServer.isConnected()) {
             chunkServer.sendChunk(chunk);
-        }
-        game.runOnMcThread(() -> {
-            game.unloadChunk(chunk.pos);
-            game.loadChunk(chunk);
+            game.runOnMcThread(() -> {
+                game.unloadChunk(chunk.pos);
+                game.loadChunk(chunk);
 
-            requestExtraChunks();
-            unloadChunksOutsideRenderDistance();
-            unloadChunksOverCap();
-        });
+                requestExtraChunks();
+                unloadChunksOutsideRenderDistance();
+                unloadChunksOverCap();
+            });
+        } else {
+            env.log(Level.WARN, "chunkserver not connected when receiving game chunk");
+        }
     }
 
     @Override
@@ -199,15 +205,25 @@ public class MoreChunks implements IMoreChunks {
         if (chunkServer.isConnected()) return;
         if (!game.isIngame()) return;
 
+        final String currentServerIp = game.getCurrentServerIp();
+        if (currentServerIp == null) {
+            env.log(Level.ERROR, "isIngame but currentServerIp == null");
+            return;
+        }
+
         final long now = env.currentTimeMillis();
-        if (nextReconnectTime > now) return; // onTick() will recheck on timeout
+        if (nextReconnectTime > now) return; // onTick() will retry on timeout
 
         nextReconnectTime = now + nextRetryInterval;
         nextRetryInterval *= 2;
         if (nextRetryInterval > 6000) nextRetryInterval = 6000; // TODO test
 
-        final String chunkServerAddress = config.getMcServerConfig(game.getCurrentServerIp()).chunkServerAddress;
-        chunkServer.connect(chunkServerAddress, this);
+        final McServerConfig mcServerConfig = config.getMcServerConfig(currentServerIp);
+        if (mcServerConfig == null) {
+            return;
+        }
+
+        chunkServer.connect(mcServerConfig.chunkServerAddress, this);
     }
 
     private void unloadChunksOutsideRenderDistance() {

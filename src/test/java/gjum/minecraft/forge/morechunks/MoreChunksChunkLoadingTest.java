@@ -85,6 +85,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
     }
 
     public void testOnGameChunkUnloadFarButKeepCloseChunks() {
+        chunkServer.connected = true;
         Pos2 nearPos = new Pos2(5, 5);
         Pos2 farPos = new Pos2(6, 0);
         game.loadedChunks.add(nearPos);
@@ -115,6 +116,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
     public void testRequestsExtraChunks() {
         chunkServer.connected = true;
         game.currentServerIp = MC_ADDRESS;
+        game.isPacketHandlerInPipe = false;
         moreChunks.onGameConnected();
 
         moreChunks.onReceiveGameChunk(new Chunk(new Pos2(0, 0), null));
@@ -152,6 +154,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
 
     public void testUnloadsChunksOverCapOnGameChunkLoad() {
         game.currentServerIp = MC_ADDRESS;
+        chunkServer.connected = true;
         conf.setMaxNumChunksLoaded(0);
         Pos2[] chunks = {
                 new Pos2(7, 0),

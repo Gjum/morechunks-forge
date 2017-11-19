@@ -27,7 +27,10 @@ public class MoreChunksConnectionTest extends TestCase {
     public void testConnectsChunkServerOnJoinGame() {
         chunkServer.connected = false;
         game.currentServerIp = MC_ADDRESS;
+        game.isPacketHandlerInPipe = false;
+
         moreChunks.onGameConnected();
+
         assertTrue(chunkServer.containsCall(ChunkServerCall.CONNECT));
     }
 

@@ -79,9 +79,7 @@ public class MoreChunksMod {
 
     @SubscribeEvent
     public void onPlayerSetSpawn(PlayerSetSpawnEvent event) {
-        if (!moreChunks.chunkServer.isConnected()) {
-            moreChunks.onGameConnected();
-        }
+        moreChunks.onGameConnected();
     }
 
     @SubscribeEvent

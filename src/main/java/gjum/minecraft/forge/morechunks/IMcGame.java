@@ -22,4 +22,6 @@ public interface IMcGame {
     void runOnMcThread(Runnable runnable);
 
     void unloadChunk(Pos2 chunkPos);
+
+    boolean wasPacketHandlerAlreadyInserted();
 }

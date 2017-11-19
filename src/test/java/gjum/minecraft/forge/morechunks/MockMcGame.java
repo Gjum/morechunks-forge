@@ -7,6 +7,7 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
     public static final String MC_ADDRESS = "mc.example.com";
 
     String currentServerIp = null;
+    boolean isPacketHandlerInPipe = true;
     ArrayList<Pos2> loadedChunks = new ArrayList<>();
 
     enum GameCall {LOAD_CHUNK, UNLOAD_CHUNK, IS_INGAME, RUN_ON_MC_THREAD, INSERT_PACKET_HANDLER, GET_LOADED_CHUNKS}
@@ -27,6 +28,11 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
     public void unloadChunk(Pos2 chunkPos) {
         trackCall(GameCall.UNLOAD_CHUNK, chunkPos);
         loadedChunks.remove(chunkPos);
+    }
+
+    @Override
+    public boolean wasPacketHandlerAlreadyInserted() {
+        return isPacketHandlerInPipe;
     }
 
     @Override
@@ -58,6 +64,7 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
     @Override
     public void insertPacketHandler(IMoreChunks moreChunks) {
         trackCall(GameCall.INSERT_PACKET_HANDLER, moreChunks);
+        isPacketHandlerInPipe = true;
     }
 
     @Override
