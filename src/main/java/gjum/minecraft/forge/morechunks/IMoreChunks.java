@@ -1,7 +1,7 @@
 package gjum.minecraft.forge.morechunks;
 
 public interface IMoreChunks {
-    int decideUndergroundCutOff(int[] heightMap);
+    int decideUndergroundCutOff(ChunkData chunkData);
 
     void onChunkServerConnected();
 

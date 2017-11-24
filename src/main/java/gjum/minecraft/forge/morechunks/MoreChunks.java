@@ -31,13 +31,36 @@ public class MoreChunks implements IMoreChunks {
     }
 
     @Override
-    public int decideUndergroundCutOff(int[] heightMap) {
+    public int decideUndergroundCutOff(ChunkData chunkData) {
         final int SECTION_HEIGHT = 16;
-        final int OCEAN_HEIGHT = 62;
+        final int CHUNK_SECTIONS = 16;
 
-        // TODO decide underground cutoff from heightMap
         // TODO decide underground cutoff from config (min/max in-/exclusion heights)
-        return OCEAN_HEIGHT / SECTION_HEIGHT - 1;
+        final int CUT_OFF_PERCENTAGE = 95;
+
+        int colsInChunk = 256;
+        int[] colsInSection = new int[CHUNK_SECTIONS]; // number of columns which have their top opaque block in that section
+        for (int highestOpaqueBlock : chunkData.heightMap) {
+            if (highestOpaqueBlock == 0) {
+                --colsInChunk;
+                continue;
+            }
+            final int sectionNr = (highestOpaqueBlock - 1) / SECTION_HEIGHT;
+            colsInSection[sectionNr] += 1;
+        }
+
+        int colsHereAndUp = 0;
+        for (int sectionNr = CHUNK_SECTIONS - 1; sectionNr >= 0; sectionNr--) {
+            colsHereAndUp += colsInSection[sectionNr];
+            final int percentColsContained = 100 * colsHereAndUp / colsInChunk;
+            if (percentColsContained > CUT_OFF_PERCENTAGE) {
+                // the sections here and up contain most of the top opaque blocks,
+                // so we remove all sections below this one
+                return sectionNr - 1;
+            }
+        }
+
+        throw new RuntimeException("Unreachable: all sections together should contain all blocks");
     }
 
     @Override

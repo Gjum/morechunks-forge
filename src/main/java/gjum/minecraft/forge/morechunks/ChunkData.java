@@ -7,11 +7,13 @@ import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import static net.minecraft.world.chunk.Chunk.NULL_BLOCK_STORAGE;
 
 public class ChunkData {
-    private final int chunkX;
-    private final int chunkZ;
-    private final ExtendedBlockStorage[] sections;
-    private final byte[] biomes = new byte[256];
-    private boolean isOverworld = true;
+    public final int chunkX;
+    public final int chunkZ;
+    public final ExtendedBlockStorage[] sections;
+    public final byte[] biomes = new byte[256];
+    public final boolean isOverworld = true;
+
+    public int[] heightMap;
 
     ChunkData(PacketBuffer packetBuffer) {
         chunkX = packetBuffer.readInt();
@@ -59,8 +61,8 @@ public class ChunkData {
      *
      * @return array of the y-coordinates of the highest opaque blocks
      */
-    public int[] getHeightMap() {
-        int[] heightMap = new int[256];
+    public int[] calculateHeightMap() {
+        heightMap = new int[256];
 
         for (int sectionNr = sections.length - 1; sectionNr >= 0; --sectionNr) {
             final ExtendedBlockStorage section = sections[sectionNr];
@@ -69,7 +71,7 @@ public class ChunkData {
 
             for (int xInSection = 0; xInSection < 16; ++xInSection) {
                 for (int zInSection = 0; zInSection < 16; ++zInSection) {
-                    final int blockColumnIndex = zInSection << 4 + xInSection;
+                    final int blockColumnIndex = (zInSection << 4) + xInSection;
 
                     if (heightMap[blockColumnIndex] != 0) continue; // next block column
 

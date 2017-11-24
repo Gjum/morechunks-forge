@@ -130,8 +130,8 @@ public class ChunkServer implements IChunkServer {
             chunk.packet.writePacketData(chunkBuf);
 
             final ChunkData chunkData = new ChunkData(chunkBuf);
-            final int[] heightMap = null;//chunkData.getHeightMap();
-            final int topReplacedSection = moreChunks.decideUndergroundCutOff(heightMap);
+            chunkData.calculateHeightMap();
+            final int topReplacedSection = moreChunks.decideUndergroundCutOff(chunkData);
             chunkData.replaceBottomSections(topReplacedSection);
             chunkData.serialize(msgBuf);
         } catch (IOException e) {

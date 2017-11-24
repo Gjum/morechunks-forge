@@ -42,7 +42,7 @@ In other words: after someone travels through an area and loads it,
 the next time someone comes around, they get sent that area in advance,
 before they are close enough for the game server to load it.
 
-Structures below sea level are not shared at all,
+Structures hidden far underground are not shared,
 so your bunkers are safe by default.
 
 In the future, you can decide not to share certain areas at all,
@@ -61,8 +61,10 @@ the mod will know that you're within render distance of these chunks.
 And looking at all your requests, it's easy to calculate the chunk you're in.
 But there's no way for anyone to know your y-coordinate or your exact x and z coordinates within that chunk.
 
-Structures more than 16 blocks below sea level are not shared at all.
-This might be configurable more precisely in a future version.
+Structures hidden far underground are not shared
+unless there is a significant exposure to the surface, such as a large hole in the ground.
+The below-surface sections (at most 16 blocks below the lowest ground level of the chunk)
+are replaced with air before the remaining chunk sections are shared.
 
 If you need the exact details of the inner workings of the system,
 you can look at the server code here: [Gjum/morechunks-server](https://github.com/Gjum/morechunks-server).
