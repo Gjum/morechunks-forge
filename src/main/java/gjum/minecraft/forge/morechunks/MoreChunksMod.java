@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.PlayerSetSpawnEvent;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
@@ -65,6 +66,8 @@ public class MoreChunksMod {
 
         config.addSubscriber(moreChunks);
         config.propagateChange();
+
+        ClientRegistry.registerKeyBinding(openGuiKey);
     }
 
     @Mod.EventHandler
