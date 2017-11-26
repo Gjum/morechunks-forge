@@ -21,6 +21,12 @@ public interface IMcGame {
 
     void runOnMcThread(Runnable runnable);
 
+    void showAchievement(String title, String msg);
+
+    void showChat(String msg);
+
+    void showHotbarMsg(String msg);
+
     void unloadChunk(Pos2 chunkPos);
 
     boolean wasPacketHandlerAlreadyInserted();

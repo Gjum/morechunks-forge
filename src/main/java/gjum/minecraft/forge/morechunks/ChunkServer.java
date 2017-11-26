@@ -224,6 +224,8 @@ public class ChunkServer implements IChunkServer {
                         String statusMsg = new String(bb);
 
                         env.log(Level.DEBUG, "StatusMsg received: " + statusMsg);
+
+                        moreChunks.onStatusMsg(statusMsg);
                         break;
 
                     default:

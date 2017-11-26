@@ -155,6 +155,35 @@ public class MoreChunks implements IMoreChunks {
     }
 
     @Override
+    public void onStatusMsg(String statusMsg) {
+        if (statusMsg.charAt(0) == 'i') {
+            int positionBits = statusMsg.charAt(1) - '0';
+            String msg = statusMsg.substring(3);
+
+            if ((positionBits & 0b1) != 0) {
+                if (game.isIngame()) game.showChat(msg);
+            }
+            if ((positionBits & 0b10) != 0) {
+                if (game.isIngame()) game.showAchievement(MoreChunksMod.MOD_NAME, msg);
+            }
+            if ((positionBits & 0b100) != 0) {
+                if (game.isIngame()) game.showHotbarMsg(msg);
+            }
+
+        } else if (statusMsg.charAt(0) == '!') {
+            if (statusMsg.startsWith("! serverRenderDistance=")) {
+                serverRenderDistance = Integer.parseUnsignedInt(statusMsg.substring(statusMsg.indexOf("=") + 1));
+
+            } else if (statusMsg.startsWith("! kick ms=")) {
+                final long now = env.currentTimeMillis();
+                final int kickTimeout = Integer.parseUnsignedInt(statusMsg.substring(statusMsg.indexOf("=") + 1));
+                nextReconnectTime = now + kickTimeout;
+                chunkServer.disconnect(new ExpectedDisconnect("MoreChunks: Kicked by chunk server"));
+            }
+        }
+    }
+
+    @Override
     public void onTick() {
         retryConnectChunkServer();
     }

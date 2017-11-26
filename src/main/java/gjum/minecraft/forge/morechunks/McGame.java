@@ -4,14 +4,23 @@ import io.netty.channel.ChannelPipeline;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.achievement.GuiAchievement;
 import net.minecraft.client.multiplayer.ChunkProviderClient;
 import net.minecraft.client.network.NetHandlerPlayClient;
+import net.minecraft.init.Items;
 import net.minecraft.network.play.server.SPacketUnloadChunk;
+import net.minecraft.stats.Achievement;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.apache.logging.log4j.Level;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static net.minecraftforge.fml.common.ObfuscationReflectionHelper.setPrivateValue;
 
 public class McGame implements IMcGame {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -102,6 +111,26 @@ public class McGame implements IMcGame {
     @Override
     public void runOnMcThread(Runnable runnable) {
         mc.addScheduledTask(runnable);
+    }
+
+    @Override
+    public void showAchievement(String title, String msg) {
+        final Achievement achievement = new Achievement(title, title, 0, 0, Items.SIGN, null);
+        mc.guiAchievement.displayAchievement(achievement);
+        setPrivateValue(GuiAchievement.class, mc.guiAchievement, title, "achievementTitle");
+        setPrivateValue(GuiAchievement.class, mc.guiAchievement, msg, "achievementDescription");
+    }
+
+    @Override
+    public void showChat(String msg) {
+        final Style modNameStyle = new Style().setColor(TextFormatting.GREEN);
+        final ITextComponent modName = new TextComponentString(MoreChunksMod.MOD_NAME).setStyle(modNameStyle);
+        mc.ingameGUI.getChatGUI().printChatMessage(new TextComponentString("[").appendSibling(modName).appendText("] ").appendText(msg));
+    }
+
+    @Override
+    public void showHotbarMsg(String msg) {
+        mc.ingameGUI.setOverlayMessage(msg, false);
     }
 
     @Override

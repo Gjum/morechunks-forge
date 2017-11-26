@@ -19,5 +19,7 @@ public interface IMoreChunks {
 
     void onReceiveGameChunk(Chunk chunk);
 
+    void onStatusMsg(String statusMsg);
+
     void onTick();
 }

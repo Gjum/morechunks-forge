@@ -10,7 +10,7 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
     boolean isPacketHandlerInPipe = true;
     ArrayList<Pos2> loadedChunks = new ArrayList<>();
 
-    enum GameCall {LOAD_CHUNK, UNLOAD_CHUNK, IS_INGAME, RUN_ON_MC_THREAD, INSERT_PACKET_HANDLER, GET_LOADED_CHUNKS}
+    enum GameCall {LOAD_CHUNK, UNLOAD_CHUNK, IS_INGAME, RUN_ON_MC_THREAD, INSERT_PACKET_HANDLER, SHOW_CHAT, SHOW_ACHIEVEMENT, SHOW_HOTBAR_MSG, GET_LOADED_CHUNKS}
 
     @Override
     public void loadChunk(Chunk chunk) {
@@ -22,6 +22,21 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
     public void runOnMcThread(Runnable runnable) {
         trackCall(GameCall.RUN_ON_MC_THREAD, runnable);
         runnable.run();
+    }
+
+    @Override
+    public void showAchievement(String title, String msg) {
+        trackCall(GameCall.SHOW_ACHIEVEMENT, title, msg);
+    }
+
+    @Override
+    public void showChat(String msg) {
+        trackCall(GameCall.SHOW_CHAT, msg);
+    }
+
+    @Override
+    public void showHotbarMsg(String msg) {
+        trackCall(GameCall.SHOW_HOTBAR_MSG, msg);
     }
 
     @Override
