@@ -13,7 +13,7 @@ public class Pos2 {
     }
 
     public long asLong() {
-        return (long) x & 0xffffffffL | ((long) z & 0xffffffffL) << 32;
+        return ((long) x & 0xffffffffL) << 32 | (long) z & 0xffffffffL;
     }
 
     @Override

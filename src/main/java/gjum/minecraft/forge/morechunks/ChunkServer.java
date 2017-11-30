@@ -161,7 +161,7 @@ public class ChunkServer implements IChunkServer {
         ByteBuf buf = channel.alloc().buffer()
                 .writeByte(SEND_CHUNKS_REQUEST);
         for (Pos2 pos : chunksPos) {
-            buf.writeLong(pos.asLong());
+            buf.writeInt(pos.x).writeInt(pos.z);
         }
         channel.writeAndFlush(buf);
     }
