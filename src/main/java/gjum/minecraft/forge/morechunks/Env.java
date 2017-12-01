@@ -14,16 +14,19 @@ public class Env implements IEnv {
 
     @Override
     public void log(Level level, String format, Object... args) {
-        StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
-        StackTraceElement caller = stacktrace[2];
-        String[] classPath = caller.getClassName().split("\\.");
-        String className = classPath[classPath.length - 1];
-        String methodName = caller.getMethodName();
-        int lineNr = caller.getLineNumber();
+        try {
+            StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
+            StackTraceElement caller = stacktrace[2];
+            String className = caller.getClassName().substring(caller.getClassName().lastIndexOf("."));
+            String methodName = caller.getMethodName();
+            int lineNr = caller.getLineNumber();
 
-        format = String.format("[%s.%s@%s] %s", className, methodName, lineNr, format);
-        String msg = String.format(format, args);
+            format = String.format("[%s.%s@%s] %s", className, methodName, lineNr, format);
+            String msg = String.format(format, args);
 
-        logger.log(level, msg);
+            logger.log(level, msg);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
