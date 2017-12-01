@@ -53,7 +53,7 @@ public class McGame implements IMcGame {
 
     @Override
     public Pos2 getPlayerChunkPos() {
-        return new Pos2(mc.player.chunkCoordX, mc.player.chunkCoordZ);
+        return Pos2.chunkPosFromBlockPos(mc.player.posX, mc.player.posZ);
     }
 
     @Override

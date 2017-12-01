@@ -190,7 +190,9 @@ public class MoreChunks implements IMoreChunks {
 
     private void requestExtraChunks() {
         if (!chunkServer.isConnected()) return;
-        if (lastRequestPlayerPos.equals(game.getPlayerChunkPos())) return; // TODO test
+
+        final Pos2 playerChunkPos = game.getPlayerChunkPos();
+        if (playerChunkPos.equals(lastRequestPlayerPos)) return; // TODO test
 
         List<Pos2> loadableChunks = getLoadableChunks();
 
@@ -201,7 +203,7 @@ public class MoreChunks implements IMoreChunks {
         if (chunkLoadLimit <= 0) return; // TODO test
         loadableChunks = loadableChunks.stream().limit(chunkLoadLimit).collect(Collectors.toList());
 
-        lastRequestPlayerPos = game.getPlayerChunkPos();
+        lastRequestPlayerPos = playerChunkPos;
 
         chunkServer.sendChunksRequest(loadableChunks);
     }
@@ -281,6 +283,11 @@ public class MoreChunks implements IMoreChunks {
                 chunksToUnload.add(chunkPos);
             }
         }
+
+        if (chunksToUnload.isEmpty()) {
+            return;
+        }
+
         for (Pos2 chunkPos : chunksToUnload) {
             game.unloadChunk(chunkPos);
         }

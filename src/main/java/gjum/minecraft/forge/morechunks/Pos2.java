@@ -60,4 +60,10 @@ public class Pos2 {
     private int max(int a, int b) {
         return a > b ? a : b;
     }
+
+    public static Pos2 chunkPosFromBlockPos(double x, double z) {
+        return new Pos2(
+                ((int) x) >> 4,
+                ((int) z) >> 4);
+    }
 }
