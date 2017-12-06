@@ -2,6 +2,8 @@
 
 Increase render distance on servers with very small default view distance.
 
+![animation visually demonstrating the main principle behind MoreChunks](https://cdn.discordapp.com/attachments/378352993717977090/388103623500103680/demo-4.gif)
+
 ## Getting started
 
 [Download the latest `MoreChunks_(version).jar`](https://github.com/Gjum/morechunks-forge/releases/latest)
