@@ -1,11 +1,8 @@
 package gjum.minecraft.forge.morechunks;
 
 import io.netty.channel.ChannelPipeline;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.achievement.GuiAchievement;
-import net.minecraft.client.multiplayer.ChunkProviderClient;
 import net.minecraft.client.network.NetHandlerPlayClient;
 import net.minecraft.init.Items;
 import net.minecraft.network.play.server.SPacketUnloadChunk;
@@ -14,16 +11,18 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import org.apache.logging.log4j.Level;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import static net.minecraftforge.fml.common.ObfuscationReflectionHelper.setPrivateValue;
 
 public class McGame implements IMcGame {
     private static final Minecraft mc = Minecraft.getMinecraft();
+
+    private final HashSet<Pos2> loadedChunks = new HashSet<>();
 
     private IEnv env;
     private PacketHandler packetHandler;
@@ -40,15 +39,13 @@ public class McGame implements IMcGame {
 
     @Override
     public List<Pos2> getLoadedChunks() {
+        // make sure loadedChunks isn't modified concurrently
         if (!mc.isCallingFromMinecraftThread()) {
             // try wrapping this call in runOnMcThread() in your code
             throw new Error("Calling getLoadedChunks from non-mc-thread");
         }
-        ArrayList<Pos2> chunkPositions = new ArrayList<>();
-        for (Long longPos : getLoadedChunkLongs()) {
-            chunkPositions.add(Pos2.fromLong(longPos));
-        }
-        return chunkPositions;
+
+        return new ArrayList<>(loadedChunks);
     }
 
     @Override
@@ -106,6 +103,7 @@ public class McGame implements IMcGame {
             return;
         }
         conn.handleChunkData(chunk.packet);
+        loadedChunks.add(chunk.pos);
     }
 
     @Override
@@ -146,6 +144,7 @@ public class McGame implements IMcGame {
             return;
         }
         conn.processChunkUnload(new SPacketUnloadChunk(pos.x, pos.z));
+        loadedChunks.remove(pos);
     }
 
     @Override
@@ -155,11 +154,5 @@ public class McGame implements IMcGame {
 
         ChannelPipeline pipe = mcConnection.getNetworkManager().channel().pipeline();
         return pipe.get(PacketHandler.NAME) != null;
-    }
-
-    private static LongSet getLoadedChunkLongs() {
-        ChunkProviderClient chunkProvider = mc.world.getChunkProvider();
-        Long2ObjectMap<Chunk> chunkMapping = ObfuscationReflectionHelper.getPrivateValue(ChunkProviderClient.class, chunkProvider, "chunkMapping");
-        return chunkMapping.keySet();
     }
 }
