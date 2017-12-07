@@ -58,7 +58,7 @@ public class MoreChunksMod {
             env.log(Level.WARN, "Failed to load config from %s", configFile);
         }
         try {
-            config.save();
+            config.save(configFile);
         } catch (IOException e) {
             e.printStackTrace();
             env.log(Level.WARN, "Failed to save config to %s", configFile);
