@@ -1,6 +1,7 @@
 package gjum.minecraft.forge.morechunks;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,14 +10,19 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
 
     String currentServerIp = null;
     boolean isPacketHandlerInPipe = true;
-    ArrayList<Pos2> loadedChunks = new ArrayList<>();
+    IEnv env;
+    Map<Pos2, Long> chunkLoadTimes = new HashMap<>();
+
+    public MockMcGame(IEnv env) {
+        this.env = env;
+    }
 
     enum GameCall {LOAD_CHUNK, UNLOAD_CHUNK, IS_INGAME, RUN_ON_MC_THREAD, INSERT_PACKET_HANDLER, SHOW_CHAT, SHOW_ACHIEVEMENT, SHOW_HOTBAR_MSG, GET_CHUNK_LOAD_TIMES, GET_LOADED_CHUNKS}
 
     @Override
     public void loadChunk(Chunk chunk) {
         trackCall(GameCall.LOAD_CHUNK, chunk);
-        loadedChunks.add(chunk.pos);
+        chunkLoadTimes.put(chunk.pos, env.currentTimeMillis());
     }
 
     @Override
@@ -43,7 +49,7 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
     @Override
     public void unloadChunk(Pos2 chunkPos) {
         trackCall(GameCall.UNLOAD_CHUNK, chunkPos);
-        loadedChunks.remove(chunkPos);
+        chunkLoadTimes.remove(chunkPos);
     }
 
     @Override
@@ -59,12 +65,13 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
     @Override
     public Map<Pos2, Long> getChunkLoadTimes() {
         trackCall(GameCall.GET_CHUNK_LOAD_TIMES);
+        return new HashMap<>(chunkLoadTimes);
     }
 
     @Override
     public List<Pos2> getLoadedChunks() {
         trackCall(GameCall.GET_LOADED_CHUNKS);
-        return loadedChunks;
+        return new ArrayList<>(chunkLoadTimes.keySet());
     }
 
     @Override

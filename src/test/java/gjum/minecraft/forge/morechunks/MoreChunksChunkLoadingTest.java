@@ -4,7 +4,6 @@ import gjum.minecraft.forge.morechunks.MockChunkServer.ChunkServerCall;
 import gjum.minecraft.forge.morechunks.MockMcGame.GameCall;
 import junit.framework.TestCase;
 
-import java.util.Arrays;
 import java.util.List;
 
 import static gjum.minecraft.forge.morechunks.MockMcGame.MC_ADDRESS;
@@ -20,12 +19,12 @@ public class MoreChunksChunkLoadingTest extends TestCase {
 
     public void setUp() throws Exception {
         super.setUp();
-        game = new MockMcGame();
+        env = new MockEnv();
+        game = new MockMcGame(env);
         chunkServer = new MockChunkServer();
         mcServerConfig = new McServerConfig(MC_ADDRESS, true, MockChunkServer.ADDRESS, 5);
         conf = new Config();
         conf.putMcServerConfig(mcServerConfig);
-        env = new MockEnv();
         moreChunks = new MoreChunks(game, conf, env, chunkServer, MoreChunksMod.VERSION);
     }
 
@@ -57,8 +56,8 @@ public class MoreChunksChunkLoadingTest extends TestCase {
         game.currentServerIp = MC_ADDRESS;
         final Chunk gameChunk = new Chunk(new Pos2(6, 0), null);
         moreChunks.onReceiveGameChunk(gameChunk);
+        game.loadChunk(gameChunk);
         game.calls.clear();
-        game.loadedChunks.add(gameChunk.pos);
 
         final Chunk extraChunk = new Chunk(new Pos2(6, 0), null);
         moreChunks.onReceiveExtraChunk(extraChunk);
@@ -88,8 +87,10 @@ public class MoreChunksChunkLoadingTest extends TestCase {
         chunkServer.connected = true;
         Pos2 nearPos = new Pos2(5, 5);
         Pos2 farPos = new Pos2(6, 0);
-        game.loadedChunks.add(nearPos);
-        game.loadedChunks.add(farPos);
+        env.nowMs = 0;
+        game.loadChunk(new Chunk(nearPos, null));
+        game.loadChunk(new Chunk(farPos, null));
+        env.nowMs = 1000;
 
         moreChunks.onReceiveGameChunk(new Chunk(new Pos2(2, 3), null));
 
@@ -135,7 +136,7 @@ public class MoreChunksChunkLoadingTest extends TestCase {
         chunkServer.connected = true;
         game.currentServerIp = MC_ADDRESS;
         Pos2 alreadyLoaded = new Pos2(5, 1);
-        game.loadedChunks.add(alreadyLoaded);
+        game.loadChunk(new Chunk(alreadyLoaded, null));
 
         moreChunks.onReceiveGameChunk(new Chunk(new Pos2(0, 0), null));
 
@@ -161,7 +162,9 @@ public class MoreChunksChunkLoadingTest extends TestCase {
                 new Pos2(5, 0),
                 new Pos2(3, 0),
         };
-        game.loadedChunks.addAll(Arrays.asList(chunks));
+        env.nowMs = 0;
+        for (Pos2 pos : chunks) game.loadChunk(new Chunk(pos, null));
+        env.nowMs = 1001;
 
         moreChunks.onReceiveGameChunk(new Chunk(new Pos2(0, 0), null));
 
@@ -181,7 +184,9 @@ public class MoreChunksChunkLoadingTest extends TestCase {
                 new Pos2(5, 0),
                 new Pos2(3, 0),
         };
-        game.loadedChunks.addAll(Arrays.asList(chunks));
+        env.nowMs = 0;
+        for (Pos2 pos : chunks) game.loadChunk(new Chunk(pos, null));
+        env.nowMs = 1001;
 
         moreChunks.onReceiveExtraChunk(new Chunk(new Pos2(5, 1), null));
 

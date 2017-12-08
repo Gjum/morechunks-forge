@@ -15,12 +15,12 @@ public class MoreChunksConnectionTest extends TestCase {
 
     public void setUp() throws Exception {
         super.setUp();
-        game = new MockMcGame();
+        env = new MockEnv();
+        game = new MockMcGame(env);
         chunkServer = new MockChunkServer();
         mcServerConfig = new McServerConfig(MC_ADDRESS, true, MockChunkServer.ADDRESS, 5);
         conf = new Config();
         conf.putMcServerConfig(mcServerConfig);
-        env = new MockEnv();
         moreChunks = new MoreChunks(game, conf, env, chunkServer, MoreChunksMod.VERSION);
     }
 
