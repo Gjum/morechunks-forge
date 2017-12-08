@@ -17,7 +17,7 @@ public class Env implements IEnv {
         try {
             StackTraceElement[] stacktrace = Thread.currentThread().getStackTrace();
             StackTraceElement caller = stacktrace[2];
-            String className = caller.getClassName().substring(caller.getClassName().lastIndexOf("."));
+            String className = caller.getClassName().substring(1 + caller.getClassName().lastIndexOf("."));
             String methodName = caller.getMethodName();
             int lineNr = caller.getLineNumber();
 
