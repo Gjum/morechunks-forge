@@ -68,7 +68,7 @@ public class ChunkServer implements IChunkServer {
                     protected void initChannel(Channel channel) {
                         channel.pipeline()
                                 // every message is prepended with their length, so that we won't read partial messages or skip messages
-                                .addLast("splitter", new LengthFieldBasedFrameDecoder(65535, 0, 4, 0, 4))
+                                .addLast("splitter", new LengthFieldBasedFrameDecoder(0x0fffffff, 0, 4, 0, 4))
                                 .addLast("prepender", new LengthFieldPrepender(4))
                                 .addLast("packet_handler", new ReceiverHandler());
                     }
