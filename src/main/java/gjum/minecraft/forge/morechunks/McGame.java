@@ -14,15 +14,16 @@ import net.minecraft.util.text.TextFormatting;
 import org.apache.logging.log4j.Level;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static net.minecraftforge.fml.common.ObfuscationReflectionHelper.setPrivateValue;
 
 public class McGame implements IMcGame {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
-    private final HashSet<Pos2> loadedChunks = new HashSet<>();
+    private final HashMap<Pos2, Long> chunkLoadTimes = new HashMap<>();
 
     private IEnv env;
     private PacketHandler packetHandler;
@@ -38,14 +39,25 @@ public class McGame implements IMcGame {
     }
 
     @Override
+    public Map<Pos2, Long> getChunkLoadTimes() {
+        // make sure chunkLoadTimes isn't modified concurrently
+        if (!mc.isCallingFromMinecraftThread()) {
+            // try wrapping this call in runOnMcThread() in your code
+            throw new Error("Calling getChunkLoadTimes from non-mc-thread");
+        }
+
+        return new HashMap<>(chunkLoadTimes);
+    }
+
+    @Override
     public List<Pos2> getLoadedChunks() {
-        // make sure loadedChunks isn't modified concurrently
+        // make sure chunkLoadTimes isn't modified concurrently
         if (!mc.isCallingFromMinecraftThread()) {
             // try wrapping this call in runOnMcThread() in your code
             throw new Error("Calling getLoadedChunks from non-mc-thread");
         }
 
-        return new ArrayList<>(loadedChunks);
+        return new ArrayList<>(chunkLoadTimes.keySet());
     }
 
     @Override
@@ -103,7 +115,7 @@ public class McGame implements IMcGame {
             return;
         }
         conn.handleChunkData(chunk.packet);
-        loadedChunks.add(chunk.pos);
+        chunkLoadTimes.put(chunk.pos, env.currentTimeMillis());
     }
 
     @Override
@@ -144,7 +156,7 @@ public class McGame implements IMcGame {
             return;
         }
         conn.processChunkUnload(new SPacketUnloadChunk(pos.x, pos.z));
-        loadedChunks.remove(pos);
+        chunkLoadTimes.remove(pos);
     }
 
     @Override

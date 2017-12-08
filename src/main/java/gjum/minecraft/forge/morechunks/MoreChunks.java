@@ -287,10 +287,11 @@ public class MoreChunks implements IMoreChunks {
         final Pos2 player = game.getPlayerChunkPos();
         int renderDistance = game.getRenderDistance();
         ArrayList<Pos2> chunksToUnload = new ArrayList<>();
-        for (Pos2 chunkPos : game.getLoadedChunks()) {
-            if (1 + player.chebyshevDistance(chunkPos) > renderDistance) {
-                chunksToUnload.add(chunkPos);
-            }
+        final long oneSecondAgo = env.currentTimeMillis() - 1000;
+        for (Map.Entry<Pos2, Long> posWithTime : game.getChunkLoadTimes().entrySet()) {
+            if (1 + player.chebyshevDistance(posWithTime.getKey()) <= renderDistance) continue;
+            if (oneSecondAgo < posWithTime.getValue()) continue;
+            chunksToUnload.add(posWithTime.getKey());
         }
 
         if (chunksToUnload.isEmpty()) {
@@ -308,11 +309,15 @@ public class MoreChunks implements IMoreChunks {
     private void unloadChunksOverCap() {
         // TODO do not unload extra chunks over cap when only recently loaded, this could prevent flickering
         if (game.getLoadedChunks().size() > config.getMaxNumChunksLoaded()) {
-            PriorityQueue<Pos2> closeChunks = new PriorityQueue<>(Comparator.comparingDouble(game.getPlayerChunkPos()::taxicabDistance));
-            closeChunks.addAll(game.getLoadedChunks());
+            final Pos2 player = game.getPlayerChunkPos();
+            final PriorityQueue<Map.Entry<Pos2, Long>> closeChunks = new PriorityQueue<>(Comparator.comparingInt(
+                    posWithTime -> player.chebyshevDistance(posWithTime.getKey())));
+            closeChunks.addAll(game.getChunkLoadTimes().entrySet());
+            final long oneSecondAgo = env.currentTimeMillis() - 1000;
             closeChunks.stream()
+                    .filter(posWithTime -> oneSecondAgo > posWithTime.getValue())
                     .skip(config.getMaxNumChunksLoaded())
-                    .forEach(game::unloadChunk);
+                    .forEach(posWithTime -> game.unloadChunk(posWithTime.getKey()));
         }
     }
 }

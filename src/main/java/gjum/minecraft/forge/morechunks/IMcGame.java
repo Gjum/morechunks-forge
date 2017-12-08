@@ -1,9 +1,12 @@
 package gjum.minecraft.forge.morechunks;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IMcGame {
     String getCurrentServerIp();
+
+    Map<Pos2, Long> getChunkLoadTimes();
 
     List<Pos2> getLoadedChunks();
 

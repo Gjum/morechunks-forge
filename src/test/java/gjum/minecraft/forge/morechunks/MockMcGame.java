@@ -2,6 +2,7 @@ package gjum.minecraft.forge.morechunks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcGame {
     public static final String MC_ADDRESS = "mc.example.com";
@@ -10,7 +11,7 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
     boolean isPacketHandlerInPipe = true;
     ArrayList<Pos2> loadedChunks = new ArrayList<>();
 
-    enum GameCall {LOAD_CHUNK, UNLOAD_CHUNK, IS_INGAME, RUN_ON_MC_THREAD, INSERT_PACKET_HANDLER, SHOW_CHAT, SHOW_ACHIEVEMENT, SHOW_HOTBAR_MSG, GET_LOADED_CHUNKS}
+    enum GameCall {LOAD_CHUNK, UNLOAD_CHUNK, IS_INGAME, RUN_ON_MC_THREAD, INSERT_PACKET_HANDLER, SHOW_CHAT, SHOW_ACHIEVEMENT, SHOW_HOTBAR_MSG, GET_CHUNK_LOAD_TIMES, GET_LOADED_CHUNKS}
 
     @Override
     public void loadChunk(Chunk chunk) {
@@ -53,6 +54,11 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
     @Override
     public String getCurrentServerIp() {
         return currentServerIp;
+    }
+
+    @Override
+    public Map<Pos2, Long> getChunkLoadTimes() {
+        trackCall(GameCall.GET_CHUNK_LOAD_TIMES);
     }
 
     @Override
