@@ -16,6 +16,8 @@ You can access the settings through Forge's mod list:
 
 Or assign a key to `MoreChunks: Open Settings` in `Options` -> `Controls`.
 
+More on what all the settings mean [below](#settings).
+
 ## What is this?
 
 The server you play on has a very short view distance,
@@ -50,6 +52,36 @@ This might be configurable more precisely in a future version.
 
 If you need the exact details of the inner workings of the system,
 you can look at the server code here: [Gjum/morechunks-server](https://github.com/Gjum/morechunks-server).
+
+## Settings
+
+#### Max. Chunks loaded:
+Besides the Render Distance (set in the video settings),
+this limits how many chunks are loaded into the game at any time.
+
+You can use this in combination with a very large Render Distance
+to avoid distance fog while keeping your memory usage low.
+
+Setting this too small (less than 81 for CivClassic for example)
+will result in weird glitches, so keep it fairly large.
+
+#### Loading speed:
+How many extra chunks per second are loaded.
+If your connection is slow or you experience lag, try setting this to a smaller value.
+
+As long as it's more than double your Render Distance (set in the Video settings),
+there won't be any noticeable difference
+except when loading the first chunks during login
+or when teleporting a far distance (e.g. respawning).
+
+#### Chunk server address:
+The [morechunks-server](https://github.com/Gjum/morechunks-server)
+instance to use for sharing the chunks.
+
+The default at `gjum.isteinvids.co.uk:12312` is run by Gjum, the creator of this mod.
+
+In the future, you can use MoreChunks on different servers, not just CivClassic,
+and at the moment each map needs its own morechunks-server instance.
 
 ## Development
 
