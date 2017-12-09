@@ -38,6 +38,13 @@ before they are close enough for the game server to load it.
 Structures below sea level are not shared at all,
 so your bunkers are safe by default.
 
+In the future, you can decide not to share certain areas at all,
+for example where drop chests are
+or unfinished builds you want nobody else to see yet.
+
+But it is important that you share as much as you can,
+because if nobody shares anything for some area, it makes this mod useless.
+
 ## What information is shared?
 
 Other players have no way of finding out where you are at any time.
