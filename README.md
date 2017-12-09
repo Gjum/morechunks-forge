@@ -29,6 +29,10 @@ The area you receive from the game will be shared with others
 when they travel through that area in the future,
 and it will look to them the same as to you.
 
+In other words: after someone travels through an area and loads it,
+the next time someone comes around, they get sent that area in advance,
+before they are close enough for the game server to load it.
+
 Structures below sea level are not shared at all,
 so your bunkers are safe by default.
 
