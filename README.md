@@ -2,6 +2,11 @@
 
 Increase render distance on servers with very small default view distance.
 
+### This mod is still in its [Alpha phase](https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha)
+It only works on CivClassic at the moment, and you may experience crashes and other errors.
+Some important functionality is still missing, such as [marking areas as secret](https://github.com/Gjum/morechunks-forge/issues/3),
+and [compressing the network communication](https://github.com/Gjum/morechunks-forge/issues/5).
+
 [![Discord](https://img.shields.io/discord/268769629575315456.svg?colorB=7289DA&label=Discord)](https://discord.gg/FrZQeFr) [![Build Status](https://travis-ci.org/Gjum/morechunks-forge.svg?branch=master)](https://travis-ci.org/Gjum/morechunks-forge)
 
 ![animation visually demonstrating the main principle behind MoreChunks](https://cdn.discordapp.com/attachments/378352993717977090/388103623500103680/demo-4.gif)
