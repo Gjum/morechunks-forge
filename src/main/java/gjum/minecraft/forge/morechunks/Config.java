@@ -62,7 +62,19 @@ public class Config {
     }
 
     public McServerConfig getMcServerConfig(String serverAddress) {
-        return mcServerConfigs.get(serverAddress);
+        final McServerConfig mcServerConfig = mcServerConfigs.get(serverAddress);
+        if (mcServerConfig != null) return mcServerConfig;
+
+        // try with/without port
+        final int iColon = serverAddress.indexOf(':');
+        final boolean hasPort = iColon >= 0;
+        if (!hasPort) {
+            return mcServerConfigs.get(serverAddress + ":25565");
+        } else if (serverAddress.endsWith(":25565")) {
+            return mcServerConfigs.get(serverAddress.substring(0, iColon));
+        }
+
+        return null;
     }
 
     public Set<String> getMcServerKeys() {
