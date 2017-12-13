@@ -127,8 +127,8 @@ public class McGame implements IMcGame {
     public void showAchievement(String title, String msg) {
         final Achievement achievement = new Achievement(title, title, 0, 0, Items.SIGN, null);
         mc.guiAchievement.displayAchievement(achievement);
-        setPrivateValue(GuiAchievement.class, mc.guiAchievement, title, "achievementTitle");
-        setPrivateValue(GuiAchievement.class, mc.guiAchievement, msg, "achievementDescription");
+        setPrivateValue(GuiAchievement.class, mc.guiAchievement, title, "achievementTitle", "field_146268_i");
+        setPrivateValue(GuiAchievement.class, mc.guiAchievement, msg, "achievementDescription", "field_146265_j");
     }
 
     @Override
