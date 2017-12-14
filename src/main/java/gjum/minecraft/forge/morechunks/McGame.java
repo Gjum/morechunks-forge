@@ -98,7 +98,7 @@ public class McGame implements IMcGame {
 
     @Override
     public boolean isIngame() {
-        return mc.getConnection() != null;
+        return getCurrentServerIp() != null && mc.getConnection() != null;
     }
 
     @Override
