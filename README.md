@@ -1,6 +1,8 @@
 # MoreChunks Minecraft Mod
 
-Increase render distance on servers with very small default view distance.
+#### Increase terrain render distance on servers with very small default view distance.
+
+Does not change the render distance of entities/players/Orebfuscator etc.
 
 ### This mod is still in its [Alpha phase](https://en.wikipedia.org/wiki/Software_release_life_cycle#Alpha)
 It only works on CivClassic at the moment, and you may experience crashes and other errors.
