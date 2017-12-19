@@ -36,7 +36,7 @@ public class MoreChunks implements IMoreChunks {
         final int CHUNK_SECTIONS = 16;
 
         // TODO decide underground cutoff from config (min/max in-/exclusion heights)
-        final int CUT_OFF_PERCENTAGE = 95;
+        final int CUT_OFF_PERCENTAGE = 100;
 
         int colsInChunk = 256;
         int[] colsInSection = new int[CHUNK_SECTIONS]; // number of columns which have their top opaque block in that section
@@ -53,7 +53,7 @@ public class MoreChunks implements IMoreChunks {
         for (int sectionNr = CHUNK_SECTIONS - 1; sectionNr >= 0; sectionNr--) {
             colsHereAndUp += colsInSection[sectionNr];
             final int percentColsContained = 100 * colsHereAndUp / colsInChunk;
-            if (percentColsContained > CUT_OFF_PERCENTAGE) {
+            if (percentColsContained >= CUT_OFF_PERCENTAGE) {
                 // the sections here and up contain most of the top opaque blocks,
                 // so we remove all sections below this one
                 return sectionNr - 1;
