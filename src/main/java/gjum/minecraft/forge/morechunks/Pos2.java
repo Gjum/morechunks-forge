@@ -53,11 +53,11 @@ public class Pos2 {
         return abs(to.x - x) + abs(to.z - z);
     }
 
-    private int abs(int n) {
+    private static int abs(int n) {
         return n > 0 ? n : -n;
     }
 
-    private int max(int a, int b) {
+    private static int max(int a, int b) {
         return a > b ? a : b;
     }
 

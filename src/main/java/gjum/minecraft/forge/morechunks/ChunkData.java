@@ -43,10 +43,10 @@ public class ChunkData {
                 }
 
                 section.getData().read(packetBuffer);
-                packetBuffer.readBytes(section.getBlocklightArray().getData());
+                packetBuffer.readBytes(section.getBlockLight().getData());
 
                 if (isOverworld) {
-                    packetBuffer.readBytes(section.getSkylightArray().getData());
+                    packetBuffer.readBytes(section.getSkyLight().getData());
                 }
             }
         }
@@ -105,9 +105,9 @@ public class ChunkData {
             if (extendedblockstorage != NULL_BLOCK_STORAGE) {
                 sectionsBitMask |= 1 << sectionNr;
                 sectionsByteCount += extendedblockstorage.getData().getSerializedSize();
-                sectionsByteCount += extendedblockstorage.getBlocklightArray().getData().length;
+                sectionsByteCount += extendedblockstorage.getBlockLight().getData().length;
                 if (isOverworld) {
-                    sectionsByteCount += extendedblockstorage.getSkylightArray().getData().length;
+                    sectionsByteCount += extendedblockstorage.getSkyLight().getData().length;
                 }
             }
         }
@@ -123,9 +123,9 @@ public class ChunkData {
 
             if (extendedblockstorage != NULL_BLOCK_STORAGE && (sectionsBitMask & 1 << sectionNr) != 0) {
                 extendedblockstorage.getData().write(packetBuffer);
-                packetBuffer.writeBytes(extendedblockstorage.getBlocklightArray().getData());
+                packetBuffer.writeBytes(extendedblockstorage.getBlockLight().getData());
                 if (isOverworld) {
-                    packetBuffer.writeBytes(extendedblockstorage.getSkylightArray().getData());
+                    packetBuffer.writeBytes(extendedblockstorage.getSkyLight().getData());
                 }
             }
         }

@@ -56,9 +56,9 @@ public class ChunkServer implements IChunkServer {
 
         String[] hostPort = chunkServerAddress.split(":");
         String host = hostPort[0];
-        int port = 12312;
+        int port = 44444;
         if (hostPort.length > 1) port = Integer.parseUnsignedInt(hostPort[1]);
-        env.log(Level.INFO, "Connecting to %s:%d", host, port);
+        env.log(Level.DEBUG, "Connecting to %s:%d", host, port);
 
         Bootstrap bootstrap = new Bootstrap()
                 .group(getLoopGroup().getValue())
@@ -98,6 +98,11 @@ public class ChunkServer implements IChunkServer {
         }
 
         moreChunks.onChunkServerDisconnected(reason);
+    }
+
+    @Override
+    public String getConnectionInfo() {
+        return channel.remoteAddress().toString();
     }
 
     @Override
@@ -211,7 +216,8 @@ public class ChunkServer implements IChunkServer {
                         }
 
                         SPacketChunkData chunkPacket = new SPacketChunkData();
-                        msg.writeByte(0); // number of tile entities in the chunk, not contained in our packet format
+                        // XXX server needs to send this zero, because we cannot write to incoming `msg` buffer
+//                        msg.writeByte(0); // number of tile entities in the chunk, not contained in our packet format
                         chunkPacket.readPacketData(new PacketBuffer(msg));
                         Pos2 pos = new Pos2(chunkPacket.getChunkX(), chunkPacket.getChunkZ());
 

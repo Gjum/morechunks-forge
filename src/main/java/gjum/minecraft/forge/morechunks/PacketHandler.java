@@ -31,7 +31,7 @@ public class PacketHandler extends SimpleChannelInboundHandler<Packet<?>> implem
         if (packet instanceof SPacketChunkData) {
             try {
                 final SPacketChunkData chunkPacket = (SPacketChunkData) packet;
-                if (chunkPacket.doChunkLoad()) {
+                if (chunkPacket.isFullChunk()) {
                     // full chunk, not just a section
                     final Pos2 pos = new Pos2(chunkPacket.getChunkX(), chunkPacket.getChunkZ());
                     moreChunks.onReceiveGameChunk(new Chunk(pos, chunkPacket));

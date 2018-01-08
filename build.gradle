@@ -1,4 +1,4 @@
-version = "1.0.0"
+version = "1.0.0-beta-5"
 
 import org.ajoberstar.grgit.Grgit
 import org.ajoberstar.grgit.exception.GrgitException
@@ -14,7 +14,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.2-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
         classpath 'org.ajoberstar:grgit:1.1.0'
     }
 }
@@ -24,7 +24,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 ext {
-    forgeVsn = "1.10.2-12.18.3.2254"
+    forgeVsn = "1.12.2-14.23.1.2555"
     if (System.getenv("FORGE_VERSION") != null) {
         forgeVsn = System.getenv("FORGE_VERSION")
     }
@@ -54,7 +54,7 @@ if (System.getenv("TRAVIS_BUILD_NUMBER") != null) {
 minecraft {
     version = forgeVsn
     runDir = "run"
-    mappings = "snapshot_20161228"
+    mappings = "snapshot_20180101"
 
     replaceIn "gjum/minecraft/forge/morechunks/MoreChunksMod.java"
     replace "@VERSION@", project.version

@@ -73,6 +73,8 @@ public class MoreChunks implements IMoreChunks {
             return;
         }
 
+        env.log(Level.INFO, "ChunkServer: Connected to %s", chunkServer.getConnectionInfo());
+
         chunkServer.sendStringMessage("mod.version=" + versionStr);
         chunkServer.sendStringMessage("game.address=" + game.getCurrentServerIp());
         chunkServer.sendPlayerDimension(game.getPlayerDimension());
@@ -82,7 +84,6 @@ public class MoreChunks implements IMoreChunks {
     @Override
     public void onChunkServerDisconnected(DisconnectReason reason) {
         if (reason instanceof ExpectedDisconnect) return;
-        env.log(Level.WARN, "ChunkServer disconnected: %s", reason);
         retryConnectChunkServer();
     }
 
@@ -102,6 +103,7 @@ public class MoreChunks implements IMoreChunks {
         env.log(Level.DEBUG, "Connected to game");
 
         if (game.wasPacketHandlerAlreadyInserted()) {
+            env.log(Level.ERROR, "packet handler already inserted");
             return;
         }
 
@@ -127,13 +129,16 @@ public class MoreChunks implements IMoreChunks {
         if (chunkServer.isConnected()) {
             chunkServer.disconnect(new ExpectedDisconnect("MoreChunks: Game ending"));
         }
+        game.clearChunkCache();
     }
 
     @Override
     public void onPlayerChangedDimension(int toDim) {
         env.log(Level.DEBUG, "Player moved to dimension %s", toDim);
         // TODO test
-        chunkServer.sendPlayerDimension(toDim);
+        if (chunkServer.isConnected()) chunkServer.sendPlayerDimension(toDim);
+        else retryConnectChunkServer();
+        game.clearChunkCache();
     }
 
     @Override

@@ -2,11 +2,9 @@ package gjum.minecraft.forge.morechunks;
 
 import io.netty.channel.ChannelPipeline;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.achievement.GuiAchievement;
+import net.minecraft.client.gui.toasts.SystemToast;
 import net.minecraft.client.network.NetHandlerPlayClient;
-import net.minecraft.init.Items;
 import net.minecraft.network.play.server.SPacketUnloadChunk;
-import net.minecraft.stats.Achievement;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
@@ -18,8 +16,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static net.minecraftforge.fml.common.ObfuscationReflectionHelper.setPrivateValue;
-
 public class McGame implements IMcGame {
     private static final Minecraft mc = Minecraft.getMinecraft();
 
@@ -30,6 +26,11 @@ public class McGame implements IMcGame {
 
     public McGame(IEnv env) {
         this.env = env;
+    }
+
+    @Override
+    public void clearChunkCache() {
+        chunkLoadTimes.clear();
     }
 
     @Override
@@ -125,17 +126,21 @@ public class McGame implements IMcGame {
 
     @Override
     public void showAchievement(String title, String msg) {
-        final Achievement achievement = new Achievement(title, title, 0, 0, Items.SIGN, null);
-        mc.guiAchievement.displayAchievement(achievement);
-        setPrivateValue(GuiAchievement.class, mc.guiAchievement, title, "achievementTitle", "field_146268_i");
-        setPrivateValue(GuiAchievement.class, mc.guiAchievement, msg, "achievementDescription", "field_146265_j");
+        mc.getToastGui().add(new SystemToast(
+                SystemToast.Type.TUTORIAL_HINT,
+                new TextComponentString(title),
+                new TextComponentString(msg)));
     }
 
     @Override
     public void showChat(String msg) {
-        final Style modNameStyle = new Style().setColor(TextFormatting.GREEN);
-        final ITextComponent modName = new TextComponentString(MoreChunksMod.MOD_NAME).setStyle(modNameStyle);
-        mc.ingameGUI.getChatGUI().printChatMessage(new TextComponentString("[").appendSibling(modName).appendText("] ").appendText(msg));
+        final Style modStyle = new Style().setColor(TextFormatting.RED);
+        final Style msgStyle = new Style().setColor(TextFormatting.GOLD);
+        final ITextComponent modComponent = new TextComponentString("[" + MoreChunksMod.MOD_NAME + "] ").setStyle(modStyle);
+        final ITextComponent msgComponent = new TextComponentString(msg).setStyle(msgStyle);
+        mc.ingameGUI.getChatGUI().printChatMessage(new TextComponentString("")
+                .appendSibling(modComponent)
+                .appendSibling(msgComponent));
     }
 
     @Override

@@ -17,12 +17,18 @@ public class MockMcGame extends CallTracker<MockMcGame.GameCall> implements IMcG
         this.env = env;
     }
 
-    enum GameCall {LOAD_CHUNK, UNLOAD_CHUNK, IS_INGAME, RUN_ON_MC_THREAD, INSERT_PACKET_HANDLER, SHOW_CHAT, SHOW_ACHIEVEMENT, SHOW_HOTBAR_MSG, GET_CHUNK_LOAD_TIMES, GET_LOADED_CHUNKS}
+    enum GameCall {LOAD_CHUNK, UNLOAD_CHUNK, IS_INGAME, RUN_ON_MC_THREAD, INSERT_PACKET_HANDLER, SHOW_CHAT, SHOW_ACHIEVEMENT, SHOW_HOTBAR_MSG, GET_CHUNK_LOAD_TIMES, CLEAR_CHUNK_CACHE, GET_LOADED_CHUNKS}
 
     @Override
     public void loadChunk(Chunk chunk) {
         trackCall(GameCall.LOAD_CHUNK, chunk);
         chunkLoadTimes.put(chunk.pos, env.currentTimeMillis());
+    }
+
+    @Override
+    public void clearChunkCache() {
+        trackCall(GameCall.CLEAR_CHUNK_CACHE);
+        chunkLoadTimes.clear();
     }
 
     @Override

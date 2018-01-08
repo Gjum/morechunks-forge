@@ -22,6 +22,8 @@ public interface IMcGame {
 
     void loadChunk(Chunk chunk);
 
+    void clearChunkCache();
+
     void runOnMcThread(Runnable runnable);
 
     void showAchievement(String title, String msg);

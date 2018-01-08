@@ -57,7 +57,7 @@ public class GuiConfig extends GuiScreen {
         final int leftEdge = (width - FULL_WIDTH) / 2;
         int currentRow = 0;
 
-        GuiLabel title = new GuiLabel(fontRendererObj, nextId(),
+        GuiLabel title = new GuiLabel(fontRenderer, nextId(),
                 leftEdge, topEdge + ROW_HEIGHT * currentRow,
                 FULL_WIDTH, DEFAULT_HEIGHT,
                 Color.WHITE.getRGB());
@@ -67,26 +67,26 @@ public class GuiConfig extends GuiScreen {
 
         currentRow++;
 
-        textFieldList.add(txtMaxNumChunksLoaded = new TextField(nextId(), fontRendererObj,
+        textFieldList.add(txtMaxNumChunksLoaded = new TextField(nextId(), fontRenderer,
                 leftEdge, topEdge + ROW_HEIGHT * currentRow,
                 HALF_WIDTH,
                 "Max. Chunks loaded", config.getMaxNumChunksLoaded()));
 
-        textFieldList.add(txtChunkLoadsPerSecond = new TextField(nextId(), fontRendererObj,
+        textFieldList.add(txtChunkLoadsPerSecond = new TextField(nextId(), fontRenderer,
                 leftEdge + HALF_WIDTH, topEdge + ROW_HEIGHT * currentRow,
                 HALF_WIDTH,
                 "Loading speed (Chunks/sec)", config.getChunkLoadsPerSecond()));
 
         currentRow++;
 
-        GuiLabel subTitle = new GuiLabel(fontRendererObj, nextId(),
+        GuiLabel subTitle = new GuiLabel(fontRenderer, nextId(),
                 leftEdge, topEdge + ROW_HEIGHT * currentRow,
                 HALF_WIDTH, DEFAULT_HEIGHT,
                 Color.WHITE.getRGB());
         labelList.add(subTitle);
         subTitle.addLine("CivClassic:");
 
-        textFieldList.add(txtAddress = new TextField(nextId(), fontRendererObj,
+        textFieldList.add(txtAddress = new TextField(nextId(), fontRenderer,
                 leftEdge + FULL_WIDTH / 3, topEdge + ROW_HEIGHT * currentRow,
                 FULL_WIDTH * 2 / 3,
                 "Chunk server address", config.getMcServerConfig(CIV_CLASSIC_ADDRESS).chunkServerAddress));
@@ -109,11 +109,17 @@ public class GuiConfig extends GuiScreen {
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         drawDefaultBackground();
 
-        for (GuiTextField txt : textFieldList) {
-            txt.drawTextBox();
+        for (GuiTextField textField : textFieldList) {
+            textField.drawTextBox();
         }
 
-        super.drawScreen(mouseX, mouseY, partialTicks);
+        for (GuiButton button : buttonList) {
+            button.drawButton(mc, mouseX, mouseY, partialTicks);
+        }
+
+        for (GuiLabel label : labelList) {
+            label.drawLabel(mc, mouseX, mouseY);
+        }
     }
 
     @Override

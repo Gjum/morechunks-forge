@@ -20,6 +20,11 @@ public class MockChunkServer extends CallTracker<MockChunkServer.ChunkServerCall
     }
 
     @Override
+    public String getConnectionInfo() {
+        return null;
+    }
+
+    @Override
     public boolean isConnected() {
         trackCall(ChunkServerCall.IS_CONNECTED);
         return connected;

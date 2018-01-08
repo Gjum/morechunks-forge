@@ -46,14 +46,14 @@ public class TextField extends GuiTextField {
         int labelWidth = fontRenderer.getStringWidth(label);
 
         drawRect(
-                xPosition - 1,
-                yPosition - fontRenderer.FONT_HEIGHT - 1,
-                xPosition + labelWidth,
-                yPosition,
+                x - 1,
+                y - fontRenderer.FONT_HEIGHT - 1,
+                x + labelWidth,
+                y,
                 Color.LIGHT_GRAY.getRGB());
 
         fontRenderer.drawString(label,
-                xPosition, yPosition - fontRenderer.FONT_HEIGHT,
+                x, y - fontRenderer.FONT_HEIGHT,
                 Color.BLACK.getRGB());
     }
 }

@@ -11,6 +11,8 @@ public interface IChunkServer {
 
     void disconnect(DisconnectReason reason);
 
+    String getConnectionInfo();
+
     boolean isConnected();
 
     /**

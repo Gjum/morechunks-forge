@@ -29,27 +29,18 @@ public class Config {
     private static final Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().setPrettyPrinting().create();
 
     public Config() {
-        putMcServerConfig(new McServerConfig(CIV_CLASSIC_ADDRESS, true, "gjum.isteinvids.co.uk:12312", 4));
+        putMcServerConfig(new McServerConfig(CIV_CLASSIC_ADDRESS, true, "morechunks.duckdns.org:44444", 4));
     }
 
     public void addSubscriber(IMoreChunks subscriber) {
         subscribers.add(subscriber);
     }
 
-    // TODO cache blacklist using bitwise filter thing
-    // because there will be lots of non-matches, which that data structure is optimized for
-
-    public void blacklistCircle(Pos2 center, int radius) {
-        // TODO store in source-of-truth, mark blacklist as dirty
-    }
-
-    public void blacklistRectangle(Pos2 corner1, Pos2 corner2) {
-        // TODO store in source-of-truth, mark blacklist as dirty
-    }
+    // TODO cache blacklist using bloom filter
 
     public boolean canPublishChunk(Pos2 chunkPos) {
-        // TODO rebuild blacklist if dirty
-        // TODO check against blacklist
+        // TODO rebuild blacklist cache if dirty
+        // TODO check against blacklist cache
         return true;
     }
 
@@ -62,6 +53,8 @@ public class Config {
     }
 
     public McServerConfig getMcServerConfig(String serverAddress) {
+        if (serverAddress == null) return null;
+
         final McServerConfig mcServerConfig = mcServerConfigs.get(serverAddress);
         if (mcServerConfig != null) return mcServerConfig;
 
