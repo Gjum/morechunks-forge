@@ -20,6 +20,12 @@ public class MoreChunks implements IMoreChunks {
     private long nextReconnectTime = 0;
     private long nextRetryInterval = 1000;
 
+    /**
+     * When the game sends us a chunk, but we're not connected to the ChunkServer yet,
+     * we store the chunk and send it once the ChunkServer is connected.
+     */
+    private ArrayList<Chunk> chunksToSendWhenConnected = new ArrayList<>();
+
     public MoreChunks(IMcGame game, Config config, IEnv env, IChunkServer chunkServer, String versionStr) {
         this.game = game;
         this.config = config;
@@ -79,6 +85,11 @@ public class MoreChunks implements IMoreChunks {
         chunkServer.sendStringMessage("game.address=" + game.getCurrentServerIp());
         chunkServer.sendPlayerDimension(game.getPlayerDimension());
         chunkServer.sendChunkLoadsPerSecond(config.getChunkLoadsPerSecond());
+
+        for (Chunk chunk : chunksToSendWhenConnected) {
+            chunkServer.sendChunk(chunk);
+        }
+        chunksToSendWhenConnected.clear();
     }
 
     @Override
@@ -130,6 +141,7 @@ public class MoreChunks implements IMoreChunks {
             chunkServer.disconnect(new ExpectedDisconnect("MoreChunks: Game ending"));
         }
         game.clearChunkCache();
+        chunksToSendWhenConnected.clear();
     }
 
     @Override
@@ -139,6 +151,7 @@ public class MoreChunks implements IMoreChunks {
         if (chunkServer.isConnected()) chunkServer.sendPlayerDimension(toDim);
         else retryConnectChunkServer();
         game.clearChunkCache();
+        chunksToSendWhenConnected.clear();
     }
 
     @Override
@@ -177,7 +190,12 @@ public class MoreChunks implements IMoreChunks {
         if (chunkServer.isConnected()) {
             chunkServer.sendChunk(chunk);
         } else {
-            env.log(Level.DEBUG, "chunkserver not connected when receiving game chunk");
+            if (chunksToSendWhenConnected.size() < 200) {
+                chunksToSendWhenConnected.add(chunk);
+                if (chunksToSendWhenConnected.size() == 200) {
+                    env.log(Level.WARN, "Chunk Server still not connected when receiving 200th game chunk");
+                }
+            }
         }
         game.runOnMcThread(() -> {
             game.unloadChunk(chunk.pos);
