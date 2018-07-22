@@ -9,6 +9,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.Style;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.fml.client.FMLClientHandler;
 import org.apache.logging.log4j.Level;
 
 import java.util.ArrayList;
@@ -78,7 +79,7 @@ public class McGame implements IMcGame {
 
     @Override
     public void insertPacketHandler(IMoreChunks moreChunks) {
-        NetHandlerPlayClient mcConnection = mc.getConnection();
+        NetHandlerPlayClient mcConnection = (NetHandlerPlayClient) FMLClientHandler.instance().getClientPlayHandler();
         if (mcConnection == null) {
             env.log(Level.ERROR, "Could not inject packet handler into pipeline: mc.connection == null");
             return;

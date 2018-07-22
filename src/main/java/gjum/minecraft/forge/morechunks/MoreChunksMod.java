@@ -4,7 +4,6 @@ import gjum.minecraft.forge.morechunks.gui.GuiConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.entity.player.PlayerSetSpawnEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -81,7 +80,7 @@ public class MoreChunksMod {
     }
 
     @SubscribeEvent
-    public void onPlayerSetSpawn(PlayerSetSpawnEvent event) {
+    public void onGameConnected(FMLNetworkEvent.ClientConnectedToServerEvent event) {
         moreChunks.onGameConnected();
     }
 
