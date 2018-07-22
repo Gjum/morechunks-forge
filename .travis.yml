@@ -4,7 +4,7 @@ jdk:
 install:
 - "./gradlew clean"
 script:
-- FORGE_VERSION=1.10.2-12.18.3.2185 ./gradlew reobf
+- ./gradlew reobf
 before_cache:
 - rm -f $HOME/.gradle/caches/minecraft/de/oceanlabs/mcp/mcp_snapshot/*/.cache
 - rm -f $HOME/.gradle/caches/minecraft/McpMappings.json*
