@@ -100,7 +100,7 @@ public class MoreChunks implements IMoreChunks {
 
     @Override
     public void onConfigChanged() {
-        if (game.isIngame()) {
+        if (game.isIngame() && config.getMcServerConfig(game.getCurrentServerIp()) != null) {
             serverRenderDistance = config.getMcServerConfig(game.getCurrentServerIp()).serverRenderDistance;
         }
 
