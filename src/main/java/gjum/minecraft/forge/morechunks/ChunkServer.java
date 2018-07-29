@@ -47,7 +47,7 @@ public class ChunkServer implements IChunkServer {
 
         if (channel != null) {
             channel.disconnect();
-            env.log(Level.WARN, "already connected");
+            env.log(Level.WARN, "already connecting");
         }
 
         channel = null;
@@ -75,6 +75,8 @@ public class ChunkServer implements IChunkServer {
                 });
         ChannelFuture connectedF = bootstrap.connect(host, port);
 
+        channel = connectedF.channel();
+
         connectedF.channel().closeFuture().addListener(closeF ->
                 disconnect(new DisconnectReason("ChunkServer: Connection closed")));
 
@@ -83,8 +85,6 @@ public class ChunkServer implements IChunkServer {
                 disconnect(new DisconnectReason("ChunkServer: Connection failed"));
                 return;
             }
-
-            channel = connectedF.channel();
 
             moreChunks.onChunkServerConnected();
         });
@@ -216,7 +216,7 @@ public class ChunkServer implements IChunkServer {
                         }
 
                         SPacketChunkData chunkPacket = new SPacketChunkData();
-                        // XXX server needs to send this zero, because we cannot write to incoming `msg` buffer
+                        // server needs to send this zero, because we cannot write to incoming `msg` buffer
 //                        msg.writeByte(0); // number of tile entities in the chunk, not contained in our packet format
                         chunkPacket.readPacketData(new PacketBuffer(msg));
                         Pos2 pos = new Pos2(chunkPacket.getChunkX(), chunkPacket.getChunkZ());
