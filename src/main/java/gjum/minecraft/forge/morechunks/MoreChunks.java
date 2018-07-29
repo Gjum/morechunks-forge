@@ -252,8 +252,8 @@ public class MoreChunks implements IMoreChunks {
         List<Pos2> loadableChunks = getLoadableChunks();
 
         // apply limit
-        // TODO sort loadable chunks by interest instead (e.g. within player's walking direction)
-        loadableChunks = sortByPlayerDistance(loadableChunks);
+        // TODO sort loadable chunks by interest (e.g. view cone/moving direction)
+        loadableChunks.sort(Comparator.comparingDouble(playerChunkPos::euclidDistanceSq));
         final int chunkLoadLimit = config.getMaxNumChunksLoaded() - game.getLoadedChunks().size();
         if (chunkLoadLimit <= 0) return; // TODO test
         loadableChunks = loadableChunks.stream().limit(chunkLoadLimit).collect(Collectors.toList());
@@ -290,18 +290,6 @@ public class MoreChunks implements IMoreChunks {
             }
         }
         return loadable;
-    }
-
-    /**
-     * Sort chunk positions by taxicab distance to the player, in-place, ascending.
-     *
-     * @param chunks chunk positions to sort
-     * @return sorted chunk positions
-     */
-    private List<Pos2> sortByPlayerDistance(List<Pos2> chunks) {
-        final Pos2 player = game.getPlayerChunkPos();
-        chunks.sort(Comparator.comparingDouble(player::taxicabDistance));
-        return chunks;
     }
 
     private void retryConnectChunkServer() {
