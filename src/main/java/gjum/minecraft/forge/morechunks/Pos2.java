@@ -43,9 +43,9 @@ public class Pos2 {
         return max(abs(to.x - x), abs(to.z - z));
     }
 
-    public double euclidDistanceSq(Pos2 to) {
-        double dx = to.x - x;
-        double dz = to.z - z;
+    public int euclidDistanceSq(Pos2 to) {
+        int dx = to.x - x;
+        int dz = to.z - z;
         return dx * dx + dz * dz;
     }
 

@@ -319,39 +319,22 @@ public class MoreChunks implements IMoreChunks {
 
     private void unloadChunksOutsideRenderDistance() {
         final Pos2 player = game.getPlayerChunkPos();
-        int renderDistance = game.getRenderDistance();
-        ArrayList<Pos2> chunksToUnload = new ArrayList<>();
-        final long oneSecondAgo = env.currentTimeMillis() - 1000;
-        for (Map.Entry<Pos2, Long> posWithTime : game.getChunkLoadTimes().entrySet()) {
-            if (1 + player.chebyshevDistance(posWithTime.getKey()) <= renderDistance) continue;
-            if (oneSecondAgo < posWithTime.getValue()) continue;
-            chunksToUnload.add(posWithTime.getKey());
-        }
-
-        if (chunksToUnload.isEmpty()) {
-            return;
-        }
-
-        for (Pos2 chunkPos : chunksToUnload) {
-            game.unloadChunk(chunkPos);
-        }
+        final int renderDistance = game.getRenderDistance();
+        game.getChunkLoadTimes().keySet().stream()
+                .filter(pos -> 1 + player.chebyshevDistance(pos) > renderDistance)
+                .forEach(game::unloadChunk);
     }
 
     /**
      * Check if too many chunks are loaded, and unload the far away ones.
      */
     private void unloadChunksOverCap() {
-        // TODO do not unload extra chunks over cap when only recently loaded, this could prevent flickering
         if (game.getLoadedChunks().size() > config.getMaxNumChunksLoaded()) {
             final Pos2 player = game.getPlayerChunkPos();
-            final PriorityQueue<Map.Entry<Pos2, Long>> closeChunks = new PriorityQueue<>(Comparator.comparingInt(
-                    posWithTime -> player.chebyshevDistance(posWithTime.getKey())));
-            closeChunks.addAll(game.getChunkLoadTimes().entrySet());
-            final long oneSecondAgo = env.currentTimeMillis() - 1000;
-            closeChunks.stream()
-                    .filter(posWithTime -> oneSecondAgo > posWithTime.getValue())
+            game.getChunkLoadTimes().keySet().stream()
+                    .sorted(Comparator.comparingInt(player::euclidDistanceSq))
                     .skip(config.getMaxNumChunksLoaded())
-                    .forEach(posWithTime -> game.unloadChunk(posWithTime.getKey()));
+                    .forEach(game::unloadChunk);
         }
     }
 }
