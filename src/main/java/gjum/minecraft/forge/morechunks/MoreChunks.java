@@ -164,7 +164,7 @@ public class MoreChunks implements IMoreChunks {
             return;
         }
 
-        if (game.getPlayerChunkPos() != null) {
+        if (game.getPlayerChunkPos() == null) {
             env.log(Level.DEBUG, "Discarding extra chunk at %s because unknown player pos", chunk.pos);
             return;
         }
