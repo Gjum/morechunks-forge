@@ -2,7 +2,10 @@ package gjum.minecraft.forge.morechunks;
 
 import org.apache.logging.log4j.Level;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class MoreChunks implements IMoreChunks {
@@ -161,6 +164,11 @@ public class MoreChunks implements IMoreChunks {
             return;
         }
 
+        if (game.getPlayerChunkPos() != null) {
+            env.log(Level.DEBUG, "Discarding extra chunk at %s because unknown player pos", chunk.pos);
+            return;
+        }
+
         final int chunkDistance = 1 + chunk.pos.chebyshevDistance(game.getPlayerChunkPos());
 
         if (chunkDistance > game.getRenderDistance()) {
@@ -179,7 +187,6 @@ public class MoreChunks implements IMoreChunks {
                 return;
             }
 
-            game.unloadChunk(chunk.pos);
             game.loadChunk(chunk);
             unloadChunksOverCap();
         });
@@ -198,7 +205,6 @@ public class MoreChunks implements IMoreChunks {
             }
         }
         game.runOnMcThread(() -> {
-            game.unloadChunk(chunk.pos);
             game.loadChunk(chunk);
 
             if (chunkServer.isConnected()) {
@@ -247,6 +253,7 @@ public class MoreChunks implements IMoreChunks {
         if (!chunkServer.isConnected()) return;
 
         final Pos2 playerChunkPos = game.getPlayerChunkPos();
+        if (playerChunkPos == null) return; // TODO test
         if (playerChunkPos.equals(lastRequestPlayerPos)) return; // TODO test
 
         List<Pos2> loadableChunks = getLoadableChunks();
@@ -273,6 +280,8 @@ public class MoreChunks implements IMoreChunks {
         final Pos2 player = game.getPlayerChunkPos();
 
         final List<Pos2> loadable = new ArrayList<>();
+        if (player == null) return loadable;
+
         for (int x = player.x - rdClient; x <= player.x + rdClient; x++) {
             for (int z = player.z - rdClient; z <= player.z + rdClient; z++) {
                 Pos2 chunk = new Pos2(x, z);
@@ -319,6 +328,8 @@ public class MoreChunks implements IMoreChunks {
 
     private void unloadChunksOutsideRenderDistance() {
         final Pos2 player = game.getPlayerChunkPos();
+        if (player == null) return;
+
         final int renderDistance = game.getRenderDistance();
         game.getChunkLoadTimes().keySet().stream()
                 .filter(pos -> 1 + player.chebyshevDistance(pos) > renderDistance)
@@ -331,6 +342,8 @@ public class MoreChunks implements IMoreChunks {
     private void unloadChunksOverCap() {
         if (game.getLoadedChunks().size() > config.getMaxNumChunksLoaded()) {
             final Pos2 player = game.getPlayerChunkPos();
+            if (player == null) return;
+
             game.getChunkLoadTimes().keySet().stream()
                     .sorted(Comparator.comparingInt(player::euclidDistanceSq))
                     .skip(config.getMaxNumChunksLoaded())

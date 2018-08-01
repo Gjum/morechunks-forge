@@ -64,6 +64,8 @@ public class McGame implements IMcGame {
 
     @Override
     public Pos2 getPlayerChunkPos() {
+        if (mc.player.posX == 0 && mc.player.posY == 0 && mc.player.posZ == 0) return null;
+        if (mc.player.posX == 8.5 && mc.player.posY == 65 && mc.player.posZ == 8.5) return null; // position not set from server yet
         return Pos2.chunkPosFromBlockPos(mc.player.posX, mc.player.posZ);
     }
 
@@ -116,6 +118,10 @@ public class McGame implements IMcGame {
             env.log(Level.ERROR, "mc.connection == null, ignoring extra chunk at %s", chunk.pos);
             return;
         }
+
+        // prevent memory leaks
+        unloadChunk(chunk.pos);
+
         conn.handleChunkData(chunk.packet);
         chunkLoadTimes.put(chunk.pos, env.currentTimeMillis());
     }
