@@ -194,6 +194,15 @@ public class MoreChunks implements IMoreChunks {
 
     @Override
     public void onReceiveGameChunk(Chunk chunk) {
+        game.runOnMcThread(() -> {
+            game.loadChunk(chunk);
+
+            if (chunkServer.isConnected()) {
+                requestExtraChunks();
+            }
+            unloadChunksOutsideRenderDistance();
+            unloadChunksOverCap();
+        });
         if (chunkServer.isConnected()) {
             chunkServer.sendChunk(chunk);
         } else {
@@ -204,15 +213,6 @@ public class MoreChunks implements IMoreChunks {
                 }
             }
         }
-        game.runOnMcThread(() -> {
-            game.loadChunk(chunk);
-
-            if (chunkServer.isConnected()) {
-                requestExtraChunks();
-            }
-            unloadChunksOutsideRenderDistance();
-            unloadChunksOverCap();
-        });
     }
 
     @Override
@@ -267,7 +267,9 @@ public class MoreChunks implements IMoreChunks {
 
         lastRequestPlayerPos = playerChunkPos;
 
-        chunkServer.sendChunksRequest(loadableChunks);
+        if (!loadableChunks.isEmpty()) {
+            chunkServer.sendChunksRequest(loadableChunks);
+        }
     }
 
     /**
@@ -330,9 +332,11 @@ public class MoreChunks implements IMoreChunks {
         final Pos2 player = game.getPlayerChunkPos();
         if (player == null) return;
 
-        final int renderDistance = game.getRenderDistance();
+        // game server sends full server render distance regardless of client settings
+        // and game server won't resend chunks when they get inside client render distance
+        final int cutoffDistance = Math.max(game.getRenderDistance(), serverRenderDistance);
         game.getChunkLoadTimes().keySet().stream()
-                .filter(pos -> 1 + player.chebyshevDistance(pos) > renderDistance)
+                .filter(pos -> player.chebyshevDistance(pos) > cutoffDistance)
                 .forEach(game::unloadChunk);
     }
 
