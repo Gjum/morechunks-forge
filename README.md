@@ -94,7 +94,7 @@ or when teleporting a far distance (e.g. respawning).
 The [morechunks-server](https://github.com/Gjum/morechunks-server)
 instance to use for sharing the chunks.
 
-The default at `gjum.isteinvids.co.uk:12312` is run by Gjum, the creator of this mod.
+The default at `morechunks.duckdns.org:44444` is currently shut down, but you can still use MoreChunks without persistent chunks, use someone else's server, or [run your own server locally](https://github.com/Gjum/morechunks-server).
 
 In the future, you can use MoreChunks on different servers, not just CivClassic,
 and at the moment each map needs its own morechunks-server instance.
