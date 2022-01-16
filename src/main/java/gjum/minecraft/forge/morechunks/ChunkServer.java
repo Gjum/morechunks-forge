@@ -135,9 +135,6 @@ public class ChunkServer implements IChunkServer {
             chunk.packet.writePacketData(chunkBuf);
 
             final ChunkData chunkData = new ChunkData(chunkBuf);
-            chunkData.calculateHeightMap();
-            final int topReplacedSection = moreChunks.decideUndergroundCutOff(chunkData);
-            chunkData.replaceBottomSections(topReplacedSection);
             chunkData.serialize(msgBuf);
         } catch (IOException e) {
             env.log(Level.ERROR, "Failed to serialize chunk at %s", chunk.pos);
